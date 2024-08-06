@@ -1,19 +1,56 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
+import { Model } from 'mongoose';
+import { InjectModel } from '@nestjs/mongoose';
 import { CreateDoctorDto } from './dtos/create-doctor.dto';
 import { UpdateDoctorDto } from './dtos/update-doctor.dto';
+import { Doctor } from 'src/schemas/doctor.schema';
 
 @Injectable()
 export class DoctorsService {
-  updateDoctor(id: string, updateDoctorDto: UpdateDoctorDto) {
-    throw new Error('Method not implemented.');
+  constructor(
+    @InjectModel(Doctor.name) private doctorModel: Model<Doctor>,
+  ) {}
+
+  async createDoctor(createDoctorDto: CreateDoctorDto): Promise<Doctor> {
+    try {
+      const newDoctor = new this.doctorModel(createDoctorDto);
+      return await newDoctor.save();
+    } catch (error) {
+      if (error.code === 11000) {
+        // Duplicate key error
+        throw new ConflictException('A doctor with this mobile number or email already exists.');
+      }
+      throw error;
+    }
   }
-  getDoctorById(id: string) {
-    throw new Error('Method not implemented.');
+
+  async getDoctors(): Promise<Doctor[]> {
+    return this.doctorModel.find().exec();
   }
-  getDoctors() {
-    throw new Error('Method not implemented.');
+
+  async getDoctorById(id: string): Promise<Doctor> {
+    const doctor = await this.doctorModel.findById(id).exec();
+    if (!doctor) {
+      throw new NotFoundException(`Doctor with ID "${id}" not found`);
+    }
+    return doctor;
   }
-  createDoctor(createDoctorDto: CreateDoctorDto) {
-    throw new Error('Method not implemented.');
+
+  async updateDoctor(id: string, updateDoctorDto: UpdateDoctorDto): Promise<Doctor> {
+    const updatedDoctor = await this.doctorModel
+      .findByIdAndUpdate(id, updateDoctorDto, { new: true })
+      .exec();
+    if (!updatedDoctor) {
+      throw new NotFoundException(`Doctor with ID "${id}" not found`);
+    }
+    return updatedDoctor;
+  }
+
+  async deleteDoctor(id: string): Promise<{ message: string }> {
+    const result = await this.doctorModel.deleteOne({ _id: id }).exec();
+    if (result.deletedCount === 0) {
+      throw new NotFoundException(`Doctor with ID "${id}" not found`);
+    }
+    return { message: `Doctor with ID "${id}" deleted successfully` };
   }
 }
