@@ -8,11 +8,14 @@ import {
   Post,
   Delete,
   HttpStatus,
+  Res,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dtos/create-user.dto';
 import mongoose from 'mongoose';
 import { UpdateUserDto } from './dtos/update-user.dto';
+import { Query } from '@nestjs/common'; // Import Query decorator
+import { Response } from 'express';
 
 @Controller('users')
 export class UsersController {
@@ -28,6 +31,19 @@ export class UsersController {
     return this.usersService.getUsers();
   }
 
+  @Get('verify-email')
+  async verifyEmail(@Query('token') token: string, @Res() res: Response) {
+    console.log(`token is ${token}`);
+
+    try {
+      await this.usersService.verifyEmail(token);
+      // Redirect to login or success page
+      res.send('Email verified successfully!');
+    } catch (error) {
+      // Redirect to error page or show error message
+      // return res.redirect('http://localhost:3000/login?verification=error');
+    }
+  }
   @Get(':id')
   async getUserById(@Param('id') id: string) {
     const isValid = mongoose.Types.ObjectId.isValid(id);
