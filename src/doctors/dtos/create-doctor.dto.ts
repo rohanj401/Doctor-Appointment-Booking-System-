@@ -21,8 +21,8 @@ export class CreateDoctorDto {
   @IsMobilePhone()
   mobileNo: string;
 
-  @IsNumber()
-  registration_no: number;
+  @IsString()
+  registration_no: string;
 
   @IsString()
   year_of_registration: string;
@@ -41,4 +41,8 @@ export class CreateDoctorDto {
   @IsOptional()
   @IsBoolean()
   is_verified?: boolean;
+
+  document?:Express.Multer.File;
+
+  profilepic?:Express.Multer.File
 }

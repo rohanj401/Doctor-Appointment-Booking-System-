@@ -18,13 +18,11 @@ export class Doctor extends Document {
   @Prop({ required: true })
   qualification: string;
 
-  @Prop({
-    required: true,
-  })
+  @Prop({ required: true,unique: true })
   mobileNo: string;
 
   @Prop({ required: true })
-  registration_no: number;
+  registration_no: string;
 
   @Prop({ required: true })
   year_of_registration: string;
@@ -38,8 +36,14 @@ export class Doctor extends Document {
   @Prop()
   bio: string;
 
+  @Prop()
+  documentUrl: string;
+
   @Prop({ default: false })
   is_verified: boolean;
+
+  @Prop()
+  profilePic: string;
 }
 
 export const DoctorSchema = SchemaFactory.createForClass(Doctor);

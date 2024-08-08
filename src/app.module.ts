@@ -4,24 +4,23 @@ import { PatientsModule } from './patients/patients.module';
 import { DoctorsModule } from './doctors/doctors.module';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import Configuration from './config/configurations';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-      load: [Configuration],
-    }),
     MongooseModule.forRoot(
       'mongodb://localhost:27017/doctor_appointment_booking',
     ),
+    MongooseModule.forFeature([{ name: Patient.name, schema: PatientSchema }]),
+    MongooseModule.forFeature([{ name: Doctor.name, schema: DoctorSchema }]),
     PatientsModule,
     DoctorsModule,
     UsersModule,
-    AuthModule,
+    AppointmentsModule,
+    // UploadModule,
+    // UploadModule,
+    CloudinaryModule,
   ],
-  controllers: [],
-  providers: [],
+  controllers: [AppController],
+  providers: [AppService, CloudinaryService],
 })
 export class AppModule {}
