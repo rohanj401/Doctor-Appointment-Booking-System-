@@ -20,6 +20,9 @@ export class User {
     enum: ['doctor', 'patient'], // Define allowed roles
   })
   role: string;
+
+  @Prop({ default: false })
+  isEmailVerified: boolean;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
