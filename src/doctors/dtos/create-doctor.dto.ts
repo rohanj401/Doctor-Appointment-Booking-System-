@@ -7,6 +7,8 @@ import {
   IsString,
   Length,
 } from 'class-validator';
+import { Coordinates } from './coordinates';
+import { Transform } from 'class-transformer';
 
 export class CreateDoctorDto {
   @IsString()
@@ -27,24 +29,38 @@ export class CreateDoctorDto {
 
   @IsString()
   @IsMobilePhone()
-  mobileNo: string;
+  contactNumber: string;
 
   @IsString()
-  registration_no: string;
+  registrationNumber: string;
 
   @IsString()
-  year_of_registration: string;
+  yearOfRegistration: string;
 
   @IsString()
-  state_medical_council: string;
+  stateMedicalCouncil: string;
 
-  @IsOptional()
   @IsString()
-  address?: string;
+  clinicAddress?: string;
+
+  @IsString()
+  clinicName: String;
+
+  @Transform(({ value }) => Number(value), { toClassOnly: true })
+  @IsNumber()
+  pinCode: number;
 
   @IsOptional()
   @IsString()
   bio?: string;
+
+  @IsString()
+  state: string;
+
+  @IsString()
+  city: string;
+
+  coordinates?: Coordinates; // Add this line
 
   @IsOptional()
   @IsBoolean()

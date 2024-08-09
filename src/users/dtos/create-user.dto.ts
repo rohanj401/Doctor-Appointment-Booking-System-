@@ -1,12 +1,16 @@
 import { Prop } from '@nestjs/mongoose';
+import { Transform } from 'class-transformer';
 import {
   IsBoolean,
   IsEmail,
+  IsMobilePhone,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
   IsPhoneNumber,
   IsString,
 } from 'class-validator';
+import { Coordinates } from 'src/doctors/dtos/coordinates';
 
 export class CreateUserDto {
   @IsNotEmpty()
@@ -29,40 +33,51 @@ export class CreateUserDto {
   // extra fields for doctor
 
   @IsString()
-  @IsOptional()
   speciality: string;
 
   @IsString()
-  @IsOptional()
   qualification: string;
 
   @IsString()
-  @IsOptional()
-  mobileNo: string;
+  @IsMobilePhone()
+  contactNumber: string;
 
   @IsString()
-  @IsOptional()
-  registration_no: string;
+  registrationNumber: string;
 
   @IsString()
-  @IsOptional()
-  year_of_registration: string;
+  yearOfRegistration: string;
 
   @IsString()
-  @IsOptional()
-  state_medical_council: string;
+  stateMedicalCouncil: string;
 
   @IsString()
-  @IsOptional()
-  address: string;
+  clinicAddress?: string;
+
+  @IsString()
+  clinicName: String;
+
+  @Transform(({ value }) => Number(value), { toClassOnly: true })
+  @IsNumber()
+  pinCode: number;
 
   @IsOptional()
   @IsString()
-  bio: string;
+  bio?: string;
+
+  @IsString()
+  state: string;
+
+  @IsString()
+  city: string;
+
+  coordinates?: Coordinates; // Add this line
 
   @IsOptional()
+  @IsBoolean()
+  is_verified?: boolean;
+
   document?: Express.Multer.File;
 
-  @IsOptional()
   profilePic?: Express.Multer.File;
 }
