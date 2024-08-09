@@ -50,6 +50,7 @@
 
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
+import { Coordinates } from 'src/doctors/dtos/coordinates';
 
 @Schema()
 export class Doctor extends Document {
@@ -63,19 +64,28 @@ export class Doctor extends Document {
   qualification: string;
 
   @Prop({ required: true, unique: true })
-  mobileNo: string;
+  contactNumber: string;
 
   @Prop({ required: true })
-  registration_no: string;
+  registrationNumber: string;
 
   @Prop({ required: true })
-  year_of_registration: string;
+  yearOfRegistration: string;
 
   @Prop({ required: true })
-  state_medical_council: string;
+  stateMedicalCouncil: string;
 
   @Prop()
-  address: string;
+  clinicAddress?: string;
+
+  @Prop()
+  clinicName: string;
+
+  @Prop()
+  city: string;
+
+  @Prop()
+  state: string;
 
   @Prop()
   bio: string;
@@ -88,6 +98,12 @@ export class Doctor extends Document {
 
   @Prop()
   profilePic: string;
+
+  @Prop()
+  pinCode: number;
+
+  @Prop()
+  coordinates?: Coordinates;
 }
 
 export const DoctorSchema = SchemaFactory.createForClass(Doctor);
