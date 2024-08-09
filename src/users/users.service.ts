@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -11,13 +12,20 @@ import { UpdateUserDto } from './dtos/update-user.dto';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { MailerService } from '@nestjs-modules/mailer';
-
+import { HttpService } from '@nestjs/axios';
+import { Doctor } from 'src/schemas/doctor.schema';
+import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
+import { CreateDoctorDto } from 'src/doctors/dtos/create-doctor.dto';
 @Injectable()
 export class UsersService {
   constructor(
     @InjectModel(User.name) private userModel: Model<User>,
+    @InjectModel(Doctor.name) private doctorModel: Model<Doctor>,
+    private readonly cloudinaryService: CloudinaryService,
+
     private readonly jwtService: JwtService,
     private readonly mailerService: MailerService,
+    private readonly httpService: HttpService,
   ) {}
   async getUserByEmail(email) {
     try {
@@ -31,21 +39,13 @@ export class UsersService {
     }
   }
 
-  // async createUser(createUserDto: CreateUserDto) {
-  //   let User = new this.userModel(createUserDto);
-  //   const userr = await this.getUserByEmail(User.email);
-  //   if (!userr) {
-  //     const password = await bcrypt.hash(User.password, 10);
-  //     await this.User.save({ ...User, password });
-  //   }
-  // }
-
-  async createUser(createUserDto: CreateUserDto) {
+  async createUser(createUserDto: any) {
     const user = new this.userModel(createUserDto);
     const userr = await this.getUserByEmail(user.email);
+    const { email, name, password, role, ...otherData } = createUserDto;
     if (!userr) {
       //addedfor email verification
-      const payload = { email: user.email };
+      const payload = { email: user.email[0] };
       const token = this.jwtService.sign(payload, {
         secret: process.env.JwtSecret,
         expiresIn: '1h',
@@ -53,7 +53,7 @@ export class UsersService {
       console.log(`Toke is ${token}`);
       const url = `http://localhost:3000/users/verify-email?token=${token}`;
       await this.mailerService.sendMail({
-        to: user.email,
+        to: email,
         subject: 'Email Verification',
         // template: './verify-email', // Path to your email template
         // context: {
@@ -62,13 +62,93 @@ export class UsersService {
         html: `Hello ,<br>Verify : <p>${url}</p>`,
       });
       //till here
-      const password = await bcrypt.hash(user.password, 10);
+      console.log(`Hashing Paswword `);
+      const password = await bcrypt.hash(user.password[0], 10);
+      console.log('Paswword Hashed ');
+
       user.password = password;
       await user.save();
+
+      // if (role === 'doctor') {
+      //   console.log(JSON.stringify(otherData));
+      //   await this.httpService
+      //     .post('http://localhost:3000/doctors', {
+      //       ...otherData,
+      //       userId: user._id,
+      //     })
+      //     .toPromise();
+      // }
+      if (role === 'doctor') {
+        console.log('Saving doctor data');
+        await this.saveDoctor({ ...otherData, user: user._id });
+      } else if (role === 'patient') {
+        await this.httpService
+          .post('http://localhost:3000/patients', {
+            ...otherData,
+            user: user._id,
+          })
+          .toPromise();
+      }
     } else {
       throw new BadRequestException('User with this email-Id Allready Exist ');
     }
   }
+
+  async saveDoctor(createDoctorDto: CreateDoctorDto): Promise<Doctor> {
+    try {
+      console.log(createDoctorDto.document);
+      console.log(`File Properties : ${Object.keys(createDoctorDto.document)}`);
+      let document = await this.cloudinaryService.uploadImage(
+        createDoctorDto.document,
+      );
+      console.log(
+        `File Properties : ${Object.keys(createDoctorDto.profilePic)}`,
+      );
+      let profilePic = await this.cloudinaryService.uploadImage(
+        createDoctorDto.profilePic,
+      );
+      delete createDoctorDto.profilePic;
+      delete createDoctorDto.document;
+      let doctor = {
+        documentUrl: document.secure_url,
+        profilePic: profilePic.secure_url,
+        ...createDoctorDto,
+      };
+      const newDoctor = new this.doctorModel(doctor);
+      return await newDoctor.save();
+    } catch (error) {
+      if (error.code === 11000) {
+        throw new ConflictException(
+          'A doctor with this mobile number or email already exists.',
+        );
+      }
+      throw error;
+    }
+  }
+
+  // private async saveDoctor(doctorData: CreateDoctorDto) {
+  //   // Implement the logic to save doctor-specific data in the database
+  //   // For example, assuming you have a Doctor model:
+  //   console.log(doctorData.document);
+  //   console.log(doctorData.document.buffer);
+  //   let document = await this.cloudinaryService.uploadImage(
+  //     doctorData.document,
+  //   );
+  //   let profilePic = await this.cloudinaryService.uploadImage(
+  //     doctorData.profilepic,
+  //   );
+  //   delete doctorData.profilepic;
+  //   delete doctorData.document;
+  //   let doctorr = {
+  //     documentUrl: document.secure_url,
+  //     profilePic: profilePic.secure_url,
+  //     ...doctorData,
+  //   };
+  //   const newDoctor = new this.doctorModel(doctorr);
+  //   console.log(`newDoctor is ${newDoctor}`);
+  //   // const doctor = new this.doctorModel(doctorData);
+  //   await newDoctor.save();
+  // }
 
   async verifyEmail(token: string): Promise<void> {
     console.log('Verifying Users Email');
@@ -104,12 +184,6 @@ export class UsersService {
   async getUserById(id: string) {
     return await this.userModel.findById(id);
   }
-
-  //   async updateUser(id: string, updateUserDto: UpdateUserDto) {
-  //     return await this.userModel.findByIdAndUpdate(id, UpdateUserDto, {
-  //       new: true,
-  //     });
-  //   }
 
   async updateUser(
     id: string,

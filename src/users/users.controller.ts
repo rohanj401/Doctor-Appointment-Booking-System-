@@ -9,6 +9,8 @@ import {
   Delete,
   HttpStatus,
   Res,
+  UseInterceptors,
+  UploadedFiles,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dtos/create-user.dto';
@@ -16,13 +18,28 @@ import mongoose from 'mongoose';
 import { UpdateUserDto } from './dtos/update-user.dto';
 import { Query } from '@nestjs/common'; // Import Query decorator
 import { Response } from 'express';
+import { AnyFilesInterceptor } from '@nestjs/platform-express';
 
 @Controller('users')
 export class UsersController {
   constructor(private usersService: UsersService) {}
   @Post()
-  createUser(@Body() createUserDto: CreateUserDto) {
-    console.log(createUserDto);
+  @UseInterceptors(AnyFilesInterceptor())
+  createUser(
+    @UploadedFiles() files: Array<Express.Multer.File>,
+    @Body() createUserDto: CreateUserDto,
+  ) {
+    const document = files.find((file) => file.fieldname === 'document');
+    const profilePic = files.find((file) => file.fieldname === 'profilePic');
+
+    if (document) {
+      createUserDto.document = document;
+    }
+    if (profilePic) {
+      createUserDto.profilePic = profilePic;
+    }
+    console.log('Getting user');
+    // console.log(`Request Objest is : ${JSON.stringify(createUserDto)}`);
     return this.usersService.createUser(createUserDto);
   }
 
