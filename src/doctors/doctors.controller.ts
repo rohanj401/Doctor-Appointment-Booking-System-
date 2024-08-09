@@ -14,7 +14,10 @@ import mongoose from 'mongoose';
 import { CreateDoctorDto } from './dtos/create-doctor.dto';
 import { UpdateDoctorDto } from './dtos/update-doctor.dto';
 import { DoctorsService } from './doctors.service';
-import { AnyFilesInterceptor, FilesInterceptor } from '@nestjs/platform-express';
+import {
+  AnyFilesInterceptor,
+  FilesInterceptor,
+} from '@nestjs/platform-express';
 
 @Controller('doctors')
 export class DoctorsController {
@@ -26,14 +29,14 @@ export class DoctorsController {
     @Body() createDoctorDto: CreateDoctorDto,
     @UploadedFiles() files: Array<Express.Multer.File>,
   ) {
-    const document = files.find(file => file.fieldname === 'document');
-    const profilePic = files.find(file => file.fieldname === 'profilePic');
+    const document = files.find((file) => file.fieldname === 'document');
+    const profilePic = files.find((file) => file.fieldname === 'profilePic');
 
     if (document) {
       createDoctorDto.document = document;
     }
     if (profilePic) {
-      createDoctorDto.profilepic = profilePic;
+      createDoctorDto.profilePic = profilePic;
     }
 
     return this.doctorsService.createDoctor(createDoctorDto);
@@ -62,14 +65,14 @@ export class DoctorsController {
   ) {
     const isValid = mongoose.Types.ObjectId.isValid(id);
     if (!isValid) throw new HttpException('Doctor Not Found', 404);
-    const document = files.find(file => file.fieldname === 'document');
-    const profilePic = files.find(file => file.fieldname === 'profilePic');
+    const document = files.find((file) => file.fieldname === 'document');
+    const profilePic = files.find((file) => file.fieldname === 'profilePic');
 
     if (document) {
       updateDoctorDto.document = document;
     }
     if (profilePic) {
-      updateDoctorDto.profilepic = profilePic;
+      updateDoctorDto.profilePic = profilePic;
     }
     return this.doctorsService.updateDoctor(id, updateDoctorDto);
   }

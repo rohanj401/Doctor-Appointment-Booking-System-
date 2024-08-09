@@ -14,14 +14,22 @@ export class CloudinaryService {
   }
 
   async uploadImage(file: Express.Multer.File): Promise<any> {
+    console.log(`File Object type is  : ${typeof file}`);
+    // console.log(`Buffer : ${file.buffer}`);
+
     return new Promise((resolve, reject) => {
-      cloudinaryV2.uploader.upload_stream(
-        { resource_type: 'image' },
-        (error, result) => {
+      if (!file || !file.buffer) {
+        return reject(new Error('No file or file buffer is missing'));
+      }
+
+      console.log('Uploading file with size:', file.buffer.length);
+
+      cloudinaryV2.uploader
+        .upload_stream({ resource_type: 'image' }, (error, result) => {
           if (error) return reject(error);
           resolve(result);
-        }
-      ).end(file.buffer);
+        })
+        .end(file.buffer);
     });
   }
 }

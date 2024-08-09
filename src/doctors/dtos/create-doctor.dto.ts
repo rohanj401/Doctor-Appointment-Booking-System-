@@ -1,4 +1,12 @@
-import { IsBoolean, IsEmail, IsMobilePhone, IsNumber, IsOptional, IsString, Length } from 'class-validator';
+import {
+  IsBoolean,
+  IsEmail,
+  IsMobilePhone,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Length,
+} from 'class-validator';
 
 export class CreateDoctorDto {
   @IsString()
@@ -42,7 +50,7 @@ export class CreateDoctorDto {
   @IsBoolean()
   is_verified?: boolean;
 
-  document?:Express.Multer.File;
+  document?: Express.Multer.File;
 
-  profilepic?:Express.Multer.File
+  profilePic?: Express.Multer.File;
 }
