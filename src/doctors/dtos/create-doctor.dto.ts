@@ -46,7 +46,7 @@ export class CreateDoctorDto {
   @IsString()
   clinicName: String;
 
-  @Transform(({ value }) => Number(value), { toClassOnly: true })
+  // @Transform(({ value }) => Number(value), { toClassOnly: true })
   @IsNumber()
   pinCode: number;
 
@@ -66,7 +66,10 @@ export class CreateDoctorDto {
   @IsBoolean()
   is_verified?: boolean;
 
-  document?: Express.Multer.File;
+  // document?: Express.Multer.File;
 
-  profilePic?: Express.Multer.File;
+  // profilePic?: Express.Multer.File;
+  document: String;
+
+  profilePic: String;
 }

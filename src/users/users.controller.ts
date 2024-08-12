@@ -22,23 +22,23 @@ import { AnyFilesInterceptor } from '@nestjs/platform-express';
 
 @Controller('users')
 export class UsersController {
-  constructor(private usersService: UsersService) {}
+  constructor(private usersService: UsersService) { }
   @Post()
-  @UseInterceptors(AnyFilesInterceptor())
+  // @UseInterceptors(AnyFilesInterceptor())
   createUser(
-    @UploadedFiles() files: Array<Express.Multer.File>,
+    // @UploadedFiles() files: Array<Express.Multer.File>,
     @Body() createUserDto: CreateUserDto,
   ) {
-    const document = files.find((file) => file.fieldname === 'document');
-    const profilePic = files.find((file) => file.fieldname === 'profilePic');
+    // const document = files.find((file) => file.fieldname === 'document');
+    // const profilePic = files.find((file) => file.fieldname === 'profilePic');
 
-    if (document) {
-      createUserDto.document = document;
-    }
-    if (profilePic) {
-      createUserDto.profilePic = profilePic;
-    }
-    console.log('Getting user');
+    // if (document) {
+    //   createUserDto.document = document;
+    // }
+    // if (profilePic) {
+    //   createUserDto.profilePic = profilePic;
+    // }
+    console.log(` document  is ${JSON.stringify(createUserDto)}`);
     // console.log(`Request Objest is : ${JSON.stringify(createUserDto)}`);
     return this.usersService.createUser(createUserDto);
   }

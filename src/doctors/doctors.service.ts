@@ -15,36 +15,36 @@ export class DoctorsService {
   constructor(
     private readonly cloudinaryService: CloudinaryService,
     @InjectModel(Doctor.name) private doctorModel: Model<Doctor>,
-  ) {}
+  ) { }
 
-  async createDoctor(createDoctorDto: CreateDoctorDto): Promise<Doctor> {
-    try {
-      console.log(createDoctorDto);
-      let document = await this.cloudinaryService.uploadImage(
-        createDoctorDto.document,
-      );
-      let profilePic = await this.cloudinaryService.uploadImage(
-        createDoctorDto.profilePic,
-      );
-      delete createDoctorDto.profilePic;
-      delete createDoctorDto.document;
-      let doctor = {
-        documentUrl: document.secure_url,
-        profilePic: profilePic.secure_url,
-        ...createDoctorDto,
-      };
-      const newDoctor = new this.doctorModel(doctor);
-      return await newDoctor.save();
-    } catch (error) {
-      if (error.code === 11000) {
-        // Duplicate key error
-        throw new ConflictException(
-          'A doctor with this mobile number or email already exists.',
-        );
-      }
-      throw error;
-    }
-  }
+  // async createDoctor(createDoctorDto: CreateDoctorDto): Promise<Doctor> {
+  //   try {
+  //     console.log(createDoctorDto);
+  //     let document = await this.cloudinaryService.uploadImage(
+  //       createDoctorDto.document,
+  //     );
+  //     let profilePic = await this.cloudinaryService.uploadImage(
+  //       createDoctorDto.profilePic,
+  //     );
+  //     delete createDoctorDto.profilePic;
+  //     delete createDoctorDto.document;
+  //     let doctor = {
+  //       documentUrl: document.secure_url,
+  //       profilePic: profilePic.secure_url,
+  //       ...createDoctorDto,
+  //     };
+  //     const newDoctor = new this.doctorModel(doctor);
+  //     return await newDoctor.save();
+  //   } catch (error) {
+  //     if (error.code === 11000) {
+  //       // Duplicate key error
+  //       throw new ConflictException(
+  //         'A doctor with this mobile number or email already exists.',
+  //       );
+  //     }
+  //     throw error;
+  //   }
+  // }
 
   async getDoctors(): Promise<Doctor[]> {
     return this.doctorModel.find().exec();
@@ -58,37 +58,37 @@ export class DoctorsService {
     return doctor;
   }
 
-  async updateDoctor(
-    id: string,
-    updateDoctorDto: UpdateDoctorDto,
-  ): Promise<Doctor> {
-    let doctor = { ...updateDoctorDto } as any;
-    if (updateDoctorDto.document) {
-      let document = await this.cloudinaryService.uploadImage(
-        updateDoctorDto.document,
-      );
-      delete updateDoctorDto.document;
-      doctor.documentUrl = document.secure_url;
-    }
+  // async updateDoctor(
+  //   id: string,
+  //   updateDoctorDto: UpdateDoctorDto,
+  // ): Promise<Doctor> {
+  //   let doctor = { ...updateDoctorDto } as any;
+  //   if (updateDoctorDto.document) {
+  //     let document = await this.cloudinaryService.uploadImage(
+  //       updateDoctorDto.document,
+  //     );
+  //     delete updateDoctorDto.document;
+  //     doctor.documentUrl = document.secure_url;
+  //   }
 
-    if (updateDoctorDto.profilePic) {
-      let profilePic = await this.cloudinaryService.uploadImage(
-        updateDoctorDto.profilePic,
-      );
-      delete updateDoctorDto.profilePic;
-      doctor.profilePic = profilePic.secure_url;
-    }
+  //   if (updateDoctorDto.profilePic) {
+  //     let profilePic = await this.cloudinaryService.uploadImage(
+  //       updateDoctorDto.profilePic,
+  //     );
+  //     delete updateDoctorDto.profilePic;
+  //     doctor.profilePic = profilePic.secure_url;
+  //   }
 
-    const updatedDoctor = await this.doctorModel
-      .findByIdAndUpdate(id, doctor, { new: true })
-      .exec();
+  //   const updatedDoctor = await this.doctorModel
+  //     .findByIdAndUpdate(id, doctor, { new: true })
+  //     .exec();
 
-    if (!updatedDoctor) {
-      throw new NotFoundException(`Doctor with ID "${id}" not found`);
-    }
+  //   if (!updatedDoctor) {
+  //     throw new NotFoundException(`Doctor with ID "${id}" not found`);
+  //   }
 
-    return updatedDoctor;
-  }
+  //   return updatedDoctor;
+  // }
 
   async deleteDoctor(id: string): Promise<{ message: string }> {
     const result = await this.doctorModel.deleteOne({ _id: id }).exec();

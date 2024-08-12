@@ -91,7 +91,7 @@ export class Doctor extends Document {
   bio: string;
 
   @Prop()
-  documentUrl: string;
+  document: string;
 
   @Prop({ default: false })
   is_verified: boolean;

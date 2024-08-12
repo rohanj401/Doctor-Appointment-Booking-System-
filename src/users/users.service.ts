@@ -26,7 +26,7 @@ export class UsersService {
     private readonly jwtService: JwtService,
     private readonly mailerService: MailerService,
     private readonly httpService: HttpService,
-  ) {}
+  ) { }
   async getUserByEmail(email) {
     try {
       console.log(email);
@@ -40,6 +40,8 @@ export class UsersService {
   }
 
   async createUser(createUserDto: any) {
+    console.log(typeof (createUserDto.profilePic));
+    console.log(createUserDto.profilePic);
     const user = new this.userModel(createUserDto);
     const userr = await this.getUserByEmail(user.email);
     const { email, name, password, role, ...otherData } = createUserDto;
@@ -97,24 +99,24 @@ export class UsersService {
   async saveDoctor(createDoctorDto: CreateDoctorDto): Promise<Doctor> {
     try {
       console.log(createDoctorDto.document);
-      console.log(`File Properties : ${Object.keys(createDoctorDto.document)}`);
-      let document = await this.cloudinaryService.uploadImage(
-        createDoctorDto.document,
-      );
-      console.log(
-        `File Properties : ${Object.keys(createDoctorDto.profilePic)}`,
-      );
-      let profilePic = await this.cloudinaryService.uploadImage(
-        createDoctorDto.profilePic,
-      );
-      delete createDoctorDto.profilePic;
-      delete createDoctorDto.document;
-      let doctor = {
-        documentUrl: document.secure_url,
-        profilePic: profilePic.secure_url,
-        ...createDoctorDto,
-      };
-      const newDoctor = new this.doctorModel(doctor);
+      // console.log(`File Properties : ${Object.keys(createDoctorDto.document)}`);
+      // let document = await this.cloudinaryService.uploadImage(
+      //   createDoctorDto.document,
+      // );
+      // console.log(
+      //   `File Properties : ${Object.keys(createDoctorDto.profilePic)}`,
+      // );
+      // let profilePic = await this.cloudinaryService.uploadImage(
+      //   createDoctorDto.profilePic,
+      // );
+      // delete createDoctorDto.profilePic;
+      // delete createDoctorDto.document;
+      // let doctor = {
+      //   documentUrl: document.secure_url,
+      //   profilePic: profilePic.secure_url,
+      //   ...createDoctorDto,
+      // };
+      const newDoctor = new this.doctorModel(createDoctorDto);
       return await newDoctor.save();
     } catch (error) {
       if (error.code === 11000) {
