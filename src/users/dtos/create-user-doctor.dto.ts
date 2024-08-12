@@ -12,7 +12,7 @@ import {
 } from 'class-validator';
 import { Coordinates } from 'src/doctors/dtos/coordinates';
 
-export class CreateUserDto {
+export class CreateUserDoctorDto {
   @IsNotEmpty()
   @IsEmail()
   email: string;
@@ -33,50 +33,35 @@ export class CreateUserDto {
   // extra fields for doctor
 
   @IsString()
-  @IsOptional()
-
   speciality: string;
 
   @IsString()
-  @IsOptional()
-
   qualification: string;
 
   @IsString()
-  @IsOptional()
   // @IsMobilePhone()
   contactNumber: string;
 
   @IsString()
-  @IsOptional()
 
   registrationNumber: string;
 
   @IsString()
-  @IsOptional()
-
   yearOfRegistration: string;
 
   @IsString()
-  @IsOptional()
-
   stateMedicalCouncil: string;
 
   @IsString()
-  @IsOptional()
-
   clinicAddress?: string;
 
   @IsString()
-  @IsOptional()
-
   clinicName: String;
 
   @Transform(({ value }) => Number(value), { toClassOnly: true })
   @IsNumber()
   pinCode: number;
 
-  @IsOptional()
   @IsString()
   bio?: string;
 
@@ -93,33 +78,30 @@ export class CreateUserDto {
   @IsBoolean()
   is_verified?: boolean;
 
-
-  // document?: Express.Multer.File;
-
-  // profilePic?: Express.Multer.File;
-  @IsOptional()
-  document?: string;
-  @IsOptional()
-  profilePic?: string;
-
-
-
-  //Patient Data
-
-  @IsNotEmpty()
-  @IsString()
-  address: string;
-
-  @IsNotEmpty()
-  @IsString()
-  blood_group: string;
-
-
   @IsNotEmpty()
   @IsString()
   gender: string;
-  @IsNotEmpty()
+  // document?: Express.Multer.File;
+
+  @IsOptional()
   @IsString()
-  age: number;
+  eveningStartTime:string;
+
+  @IsOptional()
+  @IsString()
+  eveningEndTime:string;
+
+  @IsOptional()
+  @IsString()
+  morningStartTime:string;
+  
+  @IsOptional()
+  @IsString()
+  morningEndTime:string;
+  
+  // profilePic?: Express.Multer.File;
+  document?: string;
+  @IsOptional()
+  profilePic?: string;
 
 }

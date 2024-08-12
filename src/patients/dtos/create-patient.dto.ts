@@ -1,14 +1,7 @@
-import { IsEmail, IsNotEmpty, IsPhoneNumber, IsString } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsNumber, IsPhoneNumber, IsString } from 'class-validator';
 
 export class CreatePatientDto {
-  @IsNotEmpty()
-  @IsEmail()
-  email: string;
-  @IsNotEmpty()
-  @IsString()
-  password: string;
-  @IsNotEmpty()
-  @IsString()
+
   name: string;
   @IsPhoneNumber()
   mobileNo: string;
@@ -16,8 +9,28 @@ export class CreatePatientDto {
   address: string;
   @IsNotEmpty()
   @IsString()
+  state: string;
+  @IsNotEmpty()
+  @IsString()
+  city: string;
+  @IsNotEmpty()
+  @IsNumber()
+  zipcode: number;
+  @IsNotEmpty()
+  @IsString()
   blood_group: string;
   @IsNotEmpty()
   @IsString()
   gender: string;
+
+  @IsNotEmpty()
+  @IsString()
+  age: string;
+
+  @IsNotEmpty()
+  @IsString()
+  profilePic: string;
+
+
+
 }

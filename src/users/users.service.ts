@@ -16,11 +16,15 @@ import { HttpService } from '@nestjs/axios';
 import { Doctor } from 'src/schemas/doctor.schema';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { CreateDoctorDto } from 'src/doctors/dtos/create-doctor.dto';
+import { CreatePatientDto } from 'src/patients/dtos/create-patient.dto';
+import { Patient } from 'src/schemas/Patient.schema';
+import { CreateUserDoctorDto } from './dtos/create-user-doctor.dto';
 @Injectable()
 export class UsersService {
   constructor(
     @InjectModel(User.name) private userModel: Model<User>,
     @InjectModel(Doctor.name) private doctorModel: Model<Doctor>,
+    @InjectModel(Patient.name) private patientModel: Model<Doctor>,
     private readonly cloudinaryService: CloudinaryService,
 
     private readonly jwtService: JwtService,
@@ -39,7 +43,7 @@ export class UsersService {
     }
   }
 
-  async createUser(createUserDto: any) {
+  async createUserDoctor(createUserDto: CreateUserDoctorDto) {
     console.log(typeof (createUserDto.profilePic));
     console.log(createUserDto.profilePic);
     const user = new this.userModel(createUserDto);
@@ -71,52 +75,84 @@ export class UsersService {
       user.password = password;
       await user.save();
 
-      // if (role === 'doctor') {
-      //   console.log(JSON.stringify(otherData));
-      //   await this.httpService
-      //     .post('http://localhost:3000/doctors', {
-      //       ...otherData,
-      //       userId: user._id,
-      //     })
-      //     .toPromise();
-      // }
-      if (role === 'doctor') {
         console.log('Saving doctor data');
-        await this.saveDoctor({ ...otherData, user: user._id });
-      } else if (role === 'patient') {
-        await this.httpService
-          .post('http://localhost:3000/patients', {
-            ...otherData,
-            user: user._id,
-          })
-          .toPromise();
-      }
-    } else {
+        await this.saveDoctor({ ...otherData, user: user._id ,name:user.name});
+    }
+      else {
       throw new BadRequestException('User with this email-Id Allready Exist ');
     }
   }
 
-  async saveDoctor(createDoctorDto: CreateDoctorDto): Promise<Doctor> {
+
+  // async createUserPatient(createUserPatientDto: CreateUserDoctorDto) {
+  //   console.log(typeof (createUserPatientDto.profilePic));
+  //   console.log(createUserPatientDto.profilePic);
+  //   const user = new this.userModel(createUserPatientDto);
+  //   const userr = await this.getUserByEmail(user.email);
+  //   const { email, name, password, role, ...otherData } = createUserPatientDto;
+  //   if (!userr) {
+  //     //addedfor email verification
+  //     const payload = { email: user.email[0] };
+  //     const token = this.jwtService.sign(payload, {
+  //       secret: process.env.JwtSecret,
+  //       expiresIn: '1h',
+  //     });
+  //     console.log(`Toke is ${token}`);
+  //     const url = `http://localhost:3000/users/verify-email?token=${token}`;
+  //     await this.mailerService.sendMail({
+  //       to: email,
+  //       subject: 'Email Verification',
+  //       // template: './verify-email', // Path to your email template
+  //       // context: {
+  //       //   url,
+  //       // },
+  //       html: `Hello ,<br>Verify : <p>${url}</p>`,
+  //     });
+  //     //till here
+  //     console.log(`Hashing Paswword `);
+  //     const password = await bcrypt.hash(user.password[0], 10);
+  //     console.log('Paswword Hashed ');
+
+  //     user.password = password;
+  //     await user.save();
+
+
+  //     if (role === 'doctor') {
+  //       console.log('Saving doctor data');
+  //       await this.saveDoctor({ ...otherData, user: user._id });
+  //     } else if (role === 'patient') {
+  //       console.log('Saving patient data');
+  //       await this.savePatient({ ...otherData, user: user._id });
+  //     }
+  //   } else {
+  //     throw new BadRequestException('User with this email-Id Allready Exist ');
+  //   }
+  // }
+
+
+
+  async saveDoctor(createDoctorDto: any): Promise<Doctor> {
     try {
-      console.log(createDoctorDto.document);
-      // console.log(`File Properties : ${Object.keys(createDoctorDto.document)}`);
-      // let document = await this.cloudinaryService.uploadImage(
-      //   createDoctorDto.document,
-      // );
-      // console.log(
-      //   `File Properties : ${Object.keys(createDoctorDto.profilePic)}`,
-      // );
-      // let profilePic = await this.cloudinaryService.uploadImage(
-      //   createDoctorDto.profilePic,
-      // );
-      // delete createDoctorDto.profilePic;
-      // delete createDoctorDto.document;
-      // let doctor = {
-      //   documentUrl: document.secure_url,
-      //   profilePic: profilePic.secure_url,
-      //   ...createDoctorDto,
-      // };
-      const newDoctor = new this.doctorModel(createDoctorDto);
+      // Extract clinic details from createDoctorDto
+      const clinicDetails = {
+        clinicName: createDoctorDto.clinicName,
+        clinicAddress: createDoctorDto.clinicAddress,
+        city: createDoctorDto.city,
+        state: createDoctorDto.state,
+        eveningEndTime: createDoctorDto.eveningEndTime,
+        eveningStartTime: createDoctorDto.eveningStartTime,
+        morningEndTime: createDoctorDto.morningEndTime,
+        morningStartTime: createDoctorDto.morningStartTime,
+        coordinates:createDoctorDto.coordinates,
+      };
+  
+      // Create a new doctor object with separated clinicDetails
+      const newDoctor = await new this.doctorModel({
+        ...createDoctorDto,
+        clinicDetails, // Assign the extracted clinic details to the doctor object
+      });
+  
+      console.log(newDoctor);
       return await newDoctor.save();
     } catch (error) {
       if (error.code === 11000) {
@@ -127,29 +163,23 @@ export class UsersService {
       throw error;
     }
   }
+  
 
-  // private async saveDoctor(doctorData: CreateDoctorDto) {
-  //   // Implement the logic to save doctor-specific data in the database
-  //   // For example, assuming you have a Doctor model:
-  //   console.log(doctorData.document);
-  //   console.log(doctorData.document.buffer);
-  //   let document = await this.cloudinaryService.uploadImage(
-  //     doctorData.document,
-  //   );
-  //   let profilePic = await this.cloudinaryService.uploadImage(
-  //     doctorData.profilepic,
-  //   );
-  //   delete doctorData.profilepic;
-  //   delete doctorData.document;
-  //   let doctorr = {
-  //     documentUrl: document.secure_url,
-  //     profilePic: profilePic.secure_url,
-  //     ...doctorData,
-  //   };
-  //   const newDoctor = new this.doctorModel(doctorr);
-  //   console.log(`newDoctor is ${newDoctor}`);
-  //   // const doctor = new this.doctorModel(doctorData);
-  //   await newDoctor.save();
+  
+  //  async savePatient(creatPatientDto: any): Promise<Patient> {
+  //   try {
+  //     console.log(creatPatientDto.profilePic);
+     
+  //     const newPatient = new this.patientModel(creatPatientDto);
+  //     return await newPatient.save();
+  //   } catch (error) {
+  //     if (error.code === 11000) {
+  //       throw new ConflictException(
+  //         'A doctor with this mobile number or email already exists.',
+  //       );
+  //     }
+  //     throw error;
+  //   }
   // }
 
   async verifyEmail(token: string): Promise<void> {

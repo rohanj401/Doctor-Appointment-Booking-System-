@@ -38,7 +38,7 @@ export class Patient {
   @Prop({
     required: true,
   })
-  mobileNo: string;
+  contactNumber: string;
 
   @Prop({ required: true })
   address: string;
@@ -48,6 +48,21 @@ export class Patient {
 
   @Prop({ require: true })
   gender: string;
+
+  @Prop({ required: true })
+  state: string;
+
+  @Prop({ required: true })
+  city: string;
+
+  @Prop({ required: true })
+  pincode: number;
+
+  @Prop({ required: true })
+  age: number;
+
+  @Prop({ required: true })
+  profilePic: string;
 }
 
 export const PatientSchema = SchemaFactory.createForClass(Patient);
