@@ -6,6 +6,7 @@ import * as express from 'express';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.useGlobalPipes(new ValidationPipe());
+  app.enableCors();
 
   //Added this to Increase Request Payload Size Limit
   app.use(express.json({ limit: '50mb' }));

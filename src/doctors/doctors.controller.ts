@@ -21,26 +21,26 @@ import {
 
 @Controller('doctors')
 export class DoctorsController {
-  constructor(private doctorsService: DoctorsService) {}
+  constructor(private doctorsService: DoctorsService) { }
 
-  @Post()
-  @UseInterceptors(AnyFilesInterceptor())
-  createDoctor(
-    @Body() createDoctorDto: CreateDoctorDto,
-    @UploadedFiles() files: Array<Express.Multer.File>,
-  ) {
-    const document = files.find((file) => file.fieldname === 'document');
-    const profilePic = files.find((file) => file.fieldname === 'profilePic');
+  // @Post()
+  // @UseInterceptors(AnyFilesInterceptor())
+  // createDoctor(
+  //   @Body() createDoctorDto: CreateDoctorDto,
+  //   @UploadedFiles() files: Array<Express.Multer.File>,
+  // ) {
+  //   const document = files.find((file) => file.fieldname === 'document');
+  //   const profilePic = files.find((file) => file.fieldname === 'profilePic');
 
-    if (document) {
-      createDoctorDto.document = document;
-    }
-    if (profilePic) {
-      createDoctorDto.profilePic = profilePic;
-    }
+  //   if (document) {
+  //     createDoctorDto.document = document;
+  //   }
+  //   if (profilePic) {
+  //     createDoctorDto.profilePic = profilePic;
+  //   }
 
-    return this.doctorsService.createDoctor(createDoctorDto);
-  }
+  //   return this.doctorsService.createDoctor(createDoctorDto);
+  // }
 
   @Get()
   getDoctors() {
@@ -56,26 +56,26 @@ export class DoctorsController {
     return doctor;
   }
 
-  @Patch(':id')
-  @UseInterceptors(AnyFilesInterceptor())
-  async updateDoctor(
-    @UploadedFiles() files: Array<Express.Multer.File>,
-    @Param('id') id: string,
-    @Body() updateDoctorDto: UpdateDoctorDto,
-  ) {
-    const isValid = mongoose.Types.ObjectId.isValid(id);
-    if (!isValid) throw new HttpException('Doctor Not Found', 404);
-    const document = files.find((file) => file.fieldname === 'document');
-    const profilePic = files.find((file) => file.fieldname === 'profilePic');
+  // @Patch(':id')
+  // @UseInterceptors(AnyFilesInterceptor())
+  // async updateDoctor(
+  //   @UploadedFiles() files: Array<Express.Multer.File>,
+  //   @Param('id') id: string,
+  //   @Body() updateDoctorDto: UpdateDoctorDto,
+  // ) {
+  //   const isValid = mongoose.Types.ObjectId.isValid(id);
+  //   if (!isValid) throw new HttpException('Doctor Not Found', 404);
+  //   const document = files.find((file) => file.fieldname === 'document');
+  //   const profilePic = files.find((file) => file.fieldname === 'profilePic');
 
-    if (document) {
-      updateDoctorDto.document = document;
-    }
-    if (profilePic) {
-      updateDoctorDto.profilePic = profilePic;
-    }
-    return this.doctorsService.updateDoctor(id, updateDoctorDto);
-  }
+  //   if (document) {
+  //     updateDoctorDto.document = document;
+  //   }
+  //   if (profilePic) {
+  //     updateDoctorDto.profilePic = profilePic;
+  //   }
+  //   return this.doctorsService.updateDoctor(id, updateDoctorDto);
+  // }
 
   @Delete(':id')
   async deleteDoctor(@Param('id') id: string) {

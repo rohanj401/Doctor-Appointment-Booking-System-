@@ -39,7 +39,7 @@ export class CreateUserDto {
   qualification: string;
 
   @IsString()
-  @IsMobilePhone()
+  // @IsMobilePhone()
   contactNumber: string;
 
   @IsString()
@@ -77,7 +77,11 @@ export class CreateUserDto {
   @IsBoolean()
   is_verified?: boolean;
 
-  document?: Express.Multer.File;
 
-  profilePic?: Express.Multer.File;
+  // document?: Express.Multer.File;
+
+  // profilePic?: Express.Multer.File;
+  document?: string;
+
+  profilePic?: string;
 }
