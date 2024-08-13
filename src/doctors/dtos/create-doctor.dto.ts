@@ -9,17 +9,14 @@ import {
 } from 'class-validator';
 import { Coordinates } from './coordinates';
 import { Transform } from 'class-transformer';
+import mongoose from 'mongoose';
 
 export class CreateDoctorDto {
-  @IsString()
-  name: string;
 
-  @IsEmail()
-  email: string;
 
-  @IsString()
-  @Length(8, 128)
-  password: string;
+  
+  user: mongoose.Types.ObjectId
+
 
   @IsString()
   speciality: string;

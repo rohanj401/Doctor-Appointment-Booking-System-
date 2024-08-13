@@ -19,29 +19,29 @@ import { UpdateUserDto } from './dtos/update-user.dto';
 import { Query } from '@nestjs/common'; // Import Query decorator
 import { Response } from 'express';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
+import { CreateUserDoctorDto } from './dtos/create-user-doctor.dto';
 
 @Controller('users')
 export class UsersController {
   constructor(private usersService: UsersService) { }
-  @Post()
-  // @UseInterceptors(AnyFilesInterceptor())
-  createUser(
-    // @UploadedFiles() files: Array<Express.Multer.File>,
-    @Body() createUserDto: CreateUserDto,
+  @Post('/doctor')
+  createUserDoctor(
+    @Body() createUserDoctorDto: CreateUserDoctorDto,
   ) {
-    // const document = files.find((file) => file.fieldname === 'document');
-    // const profilePic = files.find((file) => file.fieldname === 'profilePic');
 
-    // if (document) {
-    //   createUserDto.document = document;
-    // }
-    // if (profilePic) {
-    //   createUserDto.profilePic = profilePic;
-    // }
-    console.log(` document  is ${JSON.stringify(createUserDto)}`);
-    // console.log(`Request Objest is : ${JSON.stringify(createUserDto)}`);
-    return this.usersService.createUser(createUserDto);
+    console.log(` document  is ${JSON.stringify(createUserDoctorDto)}`);
+    return this.usersService.createUserDoctor(createUserDoctorDto);
   }
+
+  // @Post('/patient')
+  // createUserPatient(
+  //   @Body() createUserDoctorDto: CreateUserDoctorDto,
+  // ) {
+
+  //   console.log(` document  is ${JSON.stringify(createUserDoctorDto)}`);
+  //   return this.usersService.createUserPatient(createUserDoctorDto);
+  // }
+
 
   @Get()
   getUsers() {
