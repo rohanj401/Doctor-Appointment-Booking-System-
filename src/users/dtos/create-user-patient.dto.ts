@@ -61,4 +61,7 @@ export class CreateUserPatientDto {
   @IsString()
   age: number;
 
+ @IsString()
+  @IsNotEmpty()
+  contactNumber: string;
 }

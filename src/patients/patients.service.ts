@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Patient } from 'src/schemas/Patient.schema';
@@ -28,5 +28,15 @@ export class PatientsService {
     return await this.patientModel.findByIdAndUpdate(id, updatePatientDto, {
       new: true,
     });
+  }
+
+  async deletePatientByUserId(userId: string): Promise<Patient | null> {
+    const deletedPatient = await this.patientModel.findOneAndDelete({ user: userId }).exec();
+
+    if (!deletedPatient) {
+      throw new NotFoundException('Patient not found');
+    }
+
+    return deletedPatient;
   }
 }

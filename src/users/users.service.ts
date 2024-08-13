@@ -19,12 +19,13 @@ import { CreateDoctorDto } from 'src/doctors/dtos/create-doctor.dto';
 import { CreatePatientDto } from 'src/patients/dtos/create-patient.dto';
 import { Patient } from 'src/schemas/Patient.schema';
 import { CreateUserDoctorDto } from './dtos/create-user-doctor.dto';
+import { CreateUserPatientDto } from './dtos/create-user-patient.dto';
 @Injectable()
 export class UsersService {
   constructor(
     @InjectModel(User.name) private userModel: Model<User>,
     @InjectModel(Doctor.name) private doctorModel: Model<Doctor>,
-    @InjectModel(Patient.name) private patientModel: Model<Doctor>,
+    @InjectModel(Patient.name) private patientModel: Model<Patient>,
     private readonly cloudinaryService: CloudinaryService,
 
     private readonly jwtService: JwtService,
@@ -58,15 +59,15 @@ export class UsersService {
       });
       console.log(`Toke is ${token}`);
       const url = `http://localhost:3000/users/verify-email?token=${token}`;
-      await this.mailerService.sendMail({
-        to: email,
-        subject: 'Email Verification',
-        // template: './verify-email', // Path to your email template
-        // context: {
-        //   url,
-        // },
-        html: `Hello ,<br>Verify : <p>${url}</p>`,
-      });
+      // await this.mailerService.sendMail({
+      //   to: email,
+      //   subject: 'Email Verification',
+      //   // template: './verify-email', // Path to your email template
+      //   // context: {
+      //   //   url,
+      //   // },
+      //   html: `Hello ,<br>Verify : <p>${url}</p>`,
+      // });
       //till here
       console.log(`Hashing Paswword `);
       const password = await bcrypt.hash(user.password[0], 10);
@@ -84,50 +85,50 @@ export class UsersService {
   }
 
 
-  // async createUserPatient(createUserPatientDto: CreateUserDoctorDto) {
-  //   console.log(typeof (createUserPatientDto.profilePic));
-  //   console.log(createUserPatientDto.profilePic);
-  //   const user = new this.userModel(createUserPatientDto);
-  //   const userr = await this.getUserByEmail(user.email);
-  //   const { email, name, password, role, ...otherData } = createUserPatientDto;
-  //   if (!userr) {
-  //     //addedfor email verification
-  //     const payload = { email: user.email[0] };
-  //     const token = this.jwtService.sign(payload, {
-  //       secret: process.env.JwtSecret,
-  //       expiresIn: '1h',
-  //     });
-  //     console.log(`Toke is ${token}`);
-  //     const url = `http://localhost:3000/users/verify-email?token=${token}`;
-  //     await this.mailerService.sendMail({
-  //       to: email,
-  //       subject: 'Email Verification',
-  //       // template: './verify-email', // Path to your email template
-  //       // context: {
-  //       //   url,
-  //       // },
-  //       html: `Hello ,<br>Verify : <p>${url}</p>`,
-  //     });
-  //     //till here
-  //     console.log(`Hashing Paswword `);
-  //     const password = await bcrypt.hash(user.password[0], 10);
-  //     console.log('Paswword Hashed ');
+  async createUserPatient(createUserPatientDto: CreateUserPatientDto) {
+    // console.log(typeof (createUserPatientDto.profilePic));
+    // console.log(createUserPatientDto.profilePic);
+    const user = new this.userModel(createUserPatientDto);
+    const userr = await this.getUserByEmail(user.email);
+    const { email, name, password, role, ...otherData } = createUserPatientDto;
+    if (!userr) {
+      //addedfor email verification
+      const payload = { email: user.email[0] };
+      const token = this.jwtService.sign(payload, {
+        secret: process.env.JwtSecret,
+        expiresIn: '1h',
+      });
+      console.log(`Toke is ${token}`);
+      const url = `http://localhost:3000/users/verify-email?token=${token}`;
+      await this.mailerService.sendMail({
+        to: email,
+        subject: 'Email Verification',
+        // template: './verify-email', // Path to your email template
+        // context: {
+        //   url,
+        // },
+        html: `Hello ,<br>Verify : <p>${url}</p>`,
+      });
+      //till here
+      console.log(`Hashing Paswword `);
+      const password = await bcrypt.hash(user.password[0], 10);
+      console.log('Paswword Hashed ');
 
-  //     user.password = password;
-  //     await user.save();
+      user.password = password;
+      await user.save();
 
 
-  //     if (role === 'doctor') {
-  //       console.log('Saving doctor data');
-  //       await this.saveDoctor({ ...otherData, user: user._id });
-  //     } else if (role === 'patient') {
-  //       console.log('Saving patient data');
-  //       await this.savePatient({ ...otherData, user: user._id });
-  //     }
-  //   } else {
-  //     throw new BadRequestException('User with this email-Id Allready Exist ');
-  //   }
-  // }
+      if (role === 'doctor') {
+        console.log('Saving doctor data');
+        await this.saveDoctor({ ...otherData, user: user._id });
+      } else if (role === 'patient') {
+        console.log('Saving patient data');
+        await this.savePatient({ ...otherData, user: user._id });
+      }
+    } else {
+      throw new BadRequestException('User with this email-Id Allready Exist ');
+    }
+  }
 
 
 
@@ -166,21 +167,25 @@ export class UsersService {
   
 
   
-  //  async savePatient(creatPatientDto: any): Promise<Patient> {
-  //   try {
-  //     console.log(creatPatientDto.profilePic);
-     
-  //     const newPatient = new this.patientModel(creatPatientDto);
-  //     return await newPatient.save();
-  //   } catch (error) {
-  //     if (error.code === 11000) {
-  //       throw new ConflictException(
-  //         'A doctor with this mobile number or email already exists.',
-  //       );
-  //     }
-  //     throw error;
-  //   }
-  // }
+   async savePatient(createPatientDto: any): Promise<Patient> {
+    try {
+      const address = {
+        address: createPatientDto.address,
+        city: createPatientDto.city,
+        pinCode:createPatientDto.pinCode,
+        state: createPatientDto.state,
+      };
+    const newPatient = new this.patientModel({...createPatientDto,address});
+      return await newPatient.save();
+    } catch (error) {
+      if (error.code === 11000) {
+        throw new ConflictException(
+          'A doctor with this mobile number or email already exists.',
+        );
+      }
+      throw error;
+    }
+  }
 
   async verifyEmail(token: string): Promise<void> {
     console.log('Verifying Users Email');
@@ -231,10 +236,9 @@ export class UsersService {
     const updatedUser = await this.userModel
       .findByIdAndUpdate(id, updateUserDto, {
         new: true,
-        runValidators: true, // Ensure the update adheres to the schema
+        runValidators: true,
       })
-      .exec(); // Ensure to use exec() to handle promises correctly
-
+      .exec(); 
     if (!updatedUser) {
       throw new NotFoundException('User not found');
     }

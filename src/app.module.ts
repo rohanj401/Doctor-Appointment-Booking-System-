@@ -13,6 +13,8 @@ import { CloudinaryService } from './cloudinary/cloudinary.service';
 import { Patient, PatientSchema } from './schemas/Patient.schema';
 import { HttpModule } from '@nestjs/axios';
 import * as bodyParser from 'body-parser';
+import { PrescriptionModule } from './prescription/prescription.module';
+import { RatingsModule } from './ratings/ratings.module';
 
 @Module({
   imports: [
@@ -30,6 +32,8 @@ import * as bodyParser from 'body-parser';
     CloudinaryModule,
     AuthModule,
     HttpModule,
+    PrescriptionModule,
+    RatingsModule,
   ],
   controllers: [AppController],
   providers: [AppService, CloudinaryService],
