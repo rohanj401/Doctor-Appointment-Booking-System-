@@ -22,6 +22,9 @@ export class User {
   role: string;
 
   @Prop({ default: false })
+  is_verified: boolean;
+
+  @Prop({ default: false })
   isEmailVerified: boolean;
 }
 

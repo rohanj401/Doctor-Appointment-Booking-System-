@@ -43,7 +43,6 @@ export class CreateUserDoctorDto {
   contactNumber: string;
 
   @IsString()
-
   registrationNumber: string;
 
   @IsString()
@@ -74,6 +73,25 @@ export class CreateUserDoctorDto {
   @IsOptional()
   coordinates?: Coordinates; // Add this line
 
+  // @Prop({
+  //   type: {
+  //     type: String,
+  //     enum: ['Point'],
+  //     required: true,
+  //   },
+  //   coordinates: {
+  //     type: [Number],
+  //     required: true,
+  //   },
+  // })
+  // location: {
+  //   type: 'Point';
+  //   coordinates: [number, number];
+  // };
+
+  @IsNumber()
+  slotDuration: number;
+
   @IsOptional()
   @IsBoolean()
   is_verified?: boolean;
@@ -81,27 +99,24 @@ export class CreateUserDoctorDto {
   @IsNotEmpty()
   @IsString()
   gender: string;
-  // document?: Express.Multer.File;
 
   @IsOptional()
   @IsString()
-  eveningStartTime:string;
+  eveningStartTime: string;
 
   @IsOptional()
   @IsString()
-  eveningEndTime:string;
+  eveningEndTime: string;
 
   @IsOptional()
   @IsString()
-  morningStartTime:string;
-  
+  morningStartTime: string;
+
   @IsOptional()
   @IsString()
-  morningEndTime:string;
-  
-  // profilePic?: Express.Multer.File;
+  morningEndTime: string;
+
   document?: string;
   @IsOptional()
   profilePic?: string;
-
 }

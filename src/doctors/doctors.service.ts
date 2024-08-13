@@ -15,7 +15,7 @@ export class DoctorsService {
   constructor(
     private readonly cloudinaryService: CloudinaryService,
     @InjectModel(Doctor.name) private doctorModel: Model<Doctor>,
-  ) { }
+  ) {}
 
   // async createDoctor(createDoctorDto: CreateDoctorDto): Promise<Doctor> {
   //   try {
@@ -56,6 +56,25 @@ export class DoctorsService {
       throw new NotFoundException(`Doctor with ID "${id}" not found`);
     }
     return doctor;
+  }
+
+  async findNearbyDoctors(data: any) {
+    console.log(data.userLatitude);
+    console.log(data.userLongitude);
+    const radiusInMeters = data.radiusInKm * 1000;
+    console.log(radiusInMeters);
+    return await this.doctorModel.find({
+      location: {
+        $nearSphere: {
+          $geometry: {
+            type: 'Point',
+            coordinates: [data.userLatitude, data.userLongitude],
+          },
+          $minDistance: 0,
+          $maxDistance: radiusInMeters,
+        },
+      },
+    });
   }
 
   // async updateDoctor(

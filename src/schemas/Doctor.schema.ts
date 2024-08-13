@@ -1,57 +1,6 @@
-// import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-// import { Document } from 'mongoose';
-
-// @Schema()
-// export class Doctor extends Document {
-//   @Prop({ required: true })
-//   name: string;
-
-//   @Prop({ required: true, unique: true })
-//   email: string;
-
-//   @Prop({ required: true })
-//   password: string;
-
-//   @Prop({ required: true })
-//   speciality: string;
-
-//   @Prop({ required: true })
-//   qualification: string;
-
-//   @Prop({ required: true,unique: true })
-//   mobileNo: string;
-
-//   @Prop({ required: true })
-//   registration_no: string;
-
-//   @Prop({ required: true })
-//   year_of_registration: string;
-
-//   @Prop({ required: true })
-//   state_medical_council: string;
-
-//   @Prop()
-//   address: string;
-
-//   @Prop()
-//   bio: string;
-
-//   @Prop()
-//   documentUrl: string;
-
-//   @Prop({ default: false })
-//   is_verified: boolean;
-
-//   @Prop()
-//   profilePic: string;
-// }
-
-// export const DoctorSchema = SchemaFactory.createForClass(Doctor);
-
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 import { ClinicDetails } from 'src/doctors/dtos/clinicDetails';
-import { Coordinates } from 'src/doctors/dtos/coordinates';
 
 @Schema()
 export class Doctor extends Document {
@@ -79,15 +28,6 @@ export class Doctor extends Document {
   @Prop()
   name: string;
 
-  // @Prop()
-  // clinicName: string;
-
-  // @Prop()
-  // city: string;
-
-  // @Prop()
-  // state: string;
-
   @Prop()
   bio: string;
 
@@ -97,16 +37,34 @@ export class Doctor extends Document {
   @Prop({ default: false })
   is_verified: boolean;
 
+  @Prop({ default: false })
+  isEmailVerified: boolean;
+
+  @Prop({ required: true })
+  gender: string;
+
   @Prop()
   profilePic: string;
 
-  // @Prop()
-  // pinCode: number;
+  @Prop({ type: ClinicDetails, required: true })
+  clinicDetails: ClinicDetails;
 
-  @Prop()
-  clinicDetails:ClinicDetails;
-  // @Prop()
-  // coordinates?: Coordinates;
+  @Prop({
+    type: {
+      type: String,
+      enum: ['Point'], // GeoJSON type
+      required: true,
+    },
+    coordinates: {
+      type: [Number], // [longitude, latitude]
+      required: true,
+    },
+  })
+  location: {
+    type: 'Point';
+    coordinates: [number, number]; // [longitude, latitude]
+  };
 }
 
 export const DoctorSchema = SchemaFactory.createForClass(Doctor);
+DoctorSchema.index({ location: '2dsphere' });

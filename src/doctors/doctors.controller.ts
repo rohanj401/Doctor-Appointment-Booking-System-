@@ -21,7 +21,7 @@ import {
 
 @Controller('doctors')
 export class DoctorsController {
-  constructor(private doctorsService: DoctorsService) { }
+  constructor(private doctorsService: DoctorsService) {}
 
   // @Post()
   // @UseInterceptors(AnyFilesInterceptor())
@@ -45,6 +45,12 @@ export class DoctorsController {
   @Get()
   getDoctors() {
     return this.doctorsService.getDoctors();
+  }
+
+  @Get('getNearByDoctors')
+  findNearbyDoctors(@Body() data: any) {
+    console.log('Finding nearBy Doctors');
+    return this.doctorsService.findNearbyDoctors(data);
   }
 
   @Get(':id')
