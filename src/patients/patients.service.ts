@@ -4,11 +4,13 @@ import { Model } from 'mongoose';
 import { Patient } from 'src/schemas/Patient.schema';
 import { CreatePatientDto } from './dtos/create-patient.dto';
 import { UpdatePatientDto } from './dtos/update-patient.dto';
+import { User } from 'src/schemas/User.schema';
 
 @Injectable()
 export class PatientsService {
   constructor(
     @InjectModel(Patient.name) private patientModel: Model<Patient>,
+    @InjectModel(User.name) private userModel: Model<User>,
   ) {}
 
   createPatient(createPatientDto: CreatePatientDto) {
@@ -30,13 +32,17 @@ export class PatientsService {
     });
   }
 
-  async deletePatientByUserId(userId: string): Promise<Patient | null> {
-    const deletedPatient = await this.patientModel.findOneAndDelete({ user: userId }).exec();
+  async deletePatient(patientId: string): Promise<void> {
+    const patient = await this.patientModel.findById(patientId);
 
-    if (!deletedPatient) {
+    if (!patient) {
       throw new NotFoundException('Patient not found');
     }
 
-    return deletedPatient;
+    // Delete the corresponding user
+    await this.userModel.findByIdAndDelete(patient.user);
+
+    // Delete the patient
+    await this.patientModel.findByIdAndDelete(patientId);
   }
 }

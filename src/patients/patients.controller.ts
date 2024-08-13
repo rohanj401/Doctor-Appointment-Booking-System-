@@ -45,8 +45,9 @@ export class PatientsController {
     if (!isValid) throw new HttpException('User Not Found', 404);
     return this.patientsService.updateUser(id, updatePatientDto);
   }
-  @Delete('user/:userId')
-  async deletePatientByUserId(@Param('userId') userId: string) {
-    return this.patientsService.deletePatientByUserId(userId);
+  @Delete(':id')
+  async deletePatient(@Param('id') id: string): Promise<void> {
+    return this.patientsService.deletePatient(id);
   }
+  
 }

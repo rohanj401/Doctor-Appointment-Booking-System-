@@ -84,9 +84,7 @@ export class DoctorsController {
   // }
 
   @Delete(':id')
-  async deleteDoctor(@Param('id') id: string) {
-    const isValid = mongoose.Types.ObjectId.isValid(id);
-    if (!isValid) throw new HttpException('Doctor Not Found', 404);
+  async deleteDoctor(@Param('id') id: string): Promise<void> {
     return this.doctorsService.deleteDoctor(id);
   }
 }
