@@ -34,12 +34,10 @@ export class CreateUserDto {
 
   @IsString()
   @IsOptional()
-
   speciality: string;
 
   @IsString()
   @IsOptional()
-
   qualification: string;
 
   @IsString()
@@ -49,27 +47,22 @@ export class CreateUserDto {
 
   @IsString()
   @IsOptional()
-
   registrationNumber: string;
 
   @IsString()
   @IsOptional()
-
   yearOfRegistration: string;
 
   @IsString()
   @IsOptional()
-
   stateMedicalCouncil: string;
 
   @IsString()
   @IsOptional()
-
   clinicAddress?: string;
 
   @IsString()
   @IsOptional()
-
   clinicName: String;
 
   @Transform(({ value }) => Number(value), { toClassOnly: true })
@@ -93,7 +86,6 @@ export class CreateUserDto {
   @IsBoolean()
   is_verified?: boolean;
 
-
   // document?: Express.Multer.File;
 
   // profilePic?: Express.Multer.File;
@@ -101,8 +93,6 @@ export class CreateUserDto {
   document?: string;
   @IsOptional()
   profilePic?: string;
-
-
 
   //Patient Data
 
@@ -112,14 +102,12 @@ export class CreateUserDto {
 
   @IsNotEmpty()
   @IsString()
-  blood_group: string;
-
+  bloodGroup: string;
 
   @IsNotEmpty()
   @IsString()
   gender: string;
-  @IsNotEmpty()
-  @IsString()
-  age: number;
-
+  // @IsNotEmpty()
+  // @IsString()
+  // age: number;
 }

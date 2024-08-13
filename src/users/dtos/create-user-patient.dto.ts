@@ -30,7 +30,6 @@ export class CreateUserPatientDto {
   @IsOptional()
   isEmailVerified: boolean = false;
 
-
   @IsNotEmpty()
   @IsString()
   address: string;
@@ -38,7 +37,6 @@ export class CreateUserPatientDto {
   @IsNotEmpty()
   @IsString()
   state: string;
-
 
   @IsNotEmpty()
   @IsString()
@@ -50,18 +48,17 @@ export class CreateUserPatientDto {
 
   @IsNotEmpty()
   @IsString()
-  blood_group: string;
-
+  boodGroup: string;
 
   @IsNotEmpty()
   @IsString()
   gender: string;
 
-  @IsNotEmpty()
   @IsString()
-  age: number;
-
- @IsString()
   @IsNotEmpty()
   contactNumber: string;
+
+  @IsString()
+  @IsNotEmpty()
+  profilePic: string;
 }

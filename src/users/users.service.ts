@@ -20,6 +20,7 @@ import { CreatePatientDto } from 'src/patients/dtos/create-patient.dto';
 import { Patient } from 'src/schemas/Patient.schema';
 import { CreateUserDoctorDto } from './dtos/create-user-doctor.dto';
 import { CreateUserPatientDto } from './dtos/create-user-patient.dto';
+import { Coordinates } from 'src/doctors/dtos/coordinates';
 @Injectable()
 export class UsersService {
   constructor(
@@ -31,7 +32,7 @@ export class UsersService {
     private readonly jwtService: JwtService,
     private readonly mailerService: MailerService,
     private readonly httpService: HttpService,
-  ) { }
+  ) {}
   async getUserByEmail(email) {
     try {
       console.log(email);
@@ -45,7 +46,7 @@ export class UsersService {
   }
 
   async createUserDoctor(createUserDto: CreateUserDoctorDto) {
-    console.log(typeof (createUserDto.profilePic));
+    console.log(typeof createUserDto.profilePic);
     console.log(createUserDto.profilePic);
     const user = new this.userModel(createUserDto);
     const userr = await this.getUserByEmail(user.email);
@@ -59,16 +60,15 @@ export class UsersService {
       });
       console.log(`Toke is ${token}`);
       const url = `http://localhost:3000/users/verify-email?token=${token}`;
-      // await this.mailerService.sendMail({
-      //   to: email,
-      //   subject: 'Email Verification',
-      //   // template: './verify-email', // Path to your email template
-      //   // context: {
-      //   //   url,
-      //   // },
-      //   html: `Hello ,<br>Verify : <p>${url}</p>`,
-      // });
-      //till here
+      await this.mailerService.sendMail({
+        to: email,
+        subject: 'Email Verification',
+        // template: './verify-email', // Path to your email template
+        // context: {
+        //   url,
+        // },
+        html: `Hello ,<br>Verify : <p>${url}</p>`,
+      });
       console.log(`Hashing Paswword `);
       const password = await bcrypt.hash(user.password[0], 10);
       console.log('Paswword Hashed ');
@@ -76,14 +76,12 @@ export class UsersService {
       user.password = password;
       await user.save();
 
-        console.log('Saving doctor data');
-        await this.saveDoctor({ ...otherData, user: user._id ,name:user.name});
-    }
-      else {
+      console.log('Saving doctor data');
+      await this.saveDoctor({ ...otherData, user: user._id, name: user.name });
+    } else {
       throw new BadRequestException('User with this email-Id Allready Exist ');
     }
   }
-
 
   async createUserPatient(createUserPatientDto: CreateUserPatientDto) {
     // console.log(typeof (createUserPatientDto.profilePic));
@@ -107,7 +105,7 @@ export class UsersService {
         // context: {
         //   url,
         // },
-        html: `Hello ,<br>Verify : <p>${url}</p>`,
+        html: `Hello ,<br>Verify your mail by visiting below link : <p>${url}</p>`,
       });
       //till here
       console.log(`Hashing Paswword `);
@@ -116,7 +114,6 @@ export class UsersService {
 
       user.password = password;
       await user.save();
-
 
       if (role === 'doctor') {
         console.log('Saving doctor data');
@@ -130,8 +127,6 @@ export class UsersService {
     }
   }
 
-
-
   async saveDoctor(createDoctorDto: any): Promise<Doctor> {
     try {
       // Extract clinic details from createDoctorDto
@@ -144,38 +139,47 @@ export class UsersService {
         eveningStartTime: createDoctorDto.eveningStartTime,
         morningEndTime: createDoctorDto.morningEndTime,
         morningStartTime: createDoctorDto.morningStartTime,
-        coordinates:createDoctorDto.coordinates,
+        slotDuration: createDoctorDto.slotDuration,
       };
-  
+      const location = {
+        type: 'Point',
+        coordinates: [
+          createDoctorDto.coordinates.latitude,
+          createDoctorDto.coordinates.longitude,
+        ],
+      };
       // Create a new doctor object with separated clinicDetails
       const newDoctor = await new this.doctorModel({
         ...createDoctorDto,
         clinicDetails, // Assign the extracted clinic details to the doctor object
+        location,
       });
-  
+
       console.log(newDoctor);
       return await newDoctor.save();
     } catch (error) {
       if (error.code === 11000) {
         throw new ConflictException(
-          'A doctor with this mobile number or email already exists.',
+          // 'A doctor with this mobile number or email already exists.',
+          console.log(error),
         );
       }
       throw error;
     }
   }
-  
 
-  
-   async savePatient(createPatientDto: any): Promise<Patient> {
+  async savePatient(createPatientDto: any): Promise<Patient> {
     try {
       const address = {
         address: createPatientDto.address,
         city: createPatientDto.city,
-        pinCode:createPatientDto.pinCode,
+        pinCode: createPatientDto.pinCode,
         state: createPatientDto.state,
       };
-    const newPatient = new this.patientModel({...createPatientDto,address});
+      const newPatient = new this.patientModel({
+        ...createPatientDto,
+        address,
+      });
       return await newPatient.save();
     } catch (error) {
       if (error.code === 11000) {
@@ -238,7 +242,7 @@ export class UsersService {
         new: true,
         runValidators: true,
       })
-      .exec(); 
+      .exec();
     if (!updatedUser) {
       throw new NotFoundException('User not found');
     }
