@@ -48,7 +48,7 @@ export class CreateUserPatientDto {
 
   @IsNotEmpty()
   @IsString()
-  boodGroup: string;
+  bloodGroup: string;
 
   @IsNotEmpty()
   @IsString()
