@@ -20,6 +20,7 @@ import { Query } from '@nestjs/common'; // Import Query decorator
 import { Response } from 'express';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { CreateUserDoctorDto } from './dtos/create-user-doctor.dto';
+import { CreateUserPatientDto } from './dtos/create-user-patient.dto';
 
 @Controller('users')
 export class UsersController {
@@ -33,14 +34,14 @@ export class UsersController {
     return this.usersService.createUserDoctor(createUserDoctorDto);
   }
 
-  // @Post('/patient')
-  // createUserPatient(
-  //   @Body() createUserDoctorDto: CreateUserDoctorDto,
-  // ) {
+  @Post('/patient')
+  createUserPatient(
+    @Body() createUserPatientDto: CreateUserPatientDto,
+  ) {
 
-  //   console.log(` document  is ${JSON.stringify(createUserDoctorDto)}`);
-  //   return this.usersService.createUserPatient(createUserDoctorDto);
-  // }
+    console.log(` document  is ${JSON.stringify(createUserPatientDto)}`);
+    return this.usersService.createUserPatient(createUserPatientDto);
+  }
 
 
   @Get()

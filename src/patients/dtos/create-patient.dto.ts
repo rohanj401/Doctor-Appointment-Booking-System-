@@ -5,17 +5,7 @@ export class CreatePatientDto {
   name: string;
   @IsPhoneNumber()
   mobileNo: string;
-  @IsNotEmpty()
-  address: string;
-  @IsNotEmpty()
-  @IsString()
-  state: string;
-  @IsNotEmpty()
-  @IsString()
-  city: string;
-  @IsNotEmpty()
-  @IsNumber()
-  zipcode: number;
+  
   @IsNotEmpty()
   @IsString()
   blood_group: string;
