@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { CreateUserDto } from './dtos/create-user.dto';
 import { User } from 'src/schemas/User.schema';
-import mongoose, { Model } from 'mongoose';
+import mongoose, { Model, Types } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { UpdateUserDto } from './dtos/update-user.dto';
 import * as bcrypt from 'bcrypt';
@@ -250,20 +250,23 @@ export class UsersService {
     return updatedUser;
   }
 
-  async deleteUser(id: string): Promise<User | null> {
-    // Validate the ID format
-    const isValid = mongoose.Types.ObjectId.isValid(id);
-    if (!isValid) {
-      throw new NotFoundException('Invalid user ID');
-    }
+  async deleteUserById(userId: string): Promise<void> {
+    const user = await this.userModel.findById(userId);
 
-    // Perform the delete operation
-    const deletedUser = await this.userModel.findByIdAndDelete(id).exec();
-
-    if (!deletedUser) {
+    if (!user) {
       throw new NotFoundException('User not found');
     }
 
-    return deletedUser;
+    // Check if the user is a doctor
+    if (user.role === 'doctor') {
+      await this.doctorModel.findOneAndDelete({ user: new Types.ObjectId(userId) });
+    }
+
+    if (user.role === 'patient') {
+      await this.patientModel.findOneAndDelete({ user: new Types.ObjectId(userId) });
+    }
+    // Delete the user
+    await this.userModel.findByIdAndDelete(userId);
   }
+
 }

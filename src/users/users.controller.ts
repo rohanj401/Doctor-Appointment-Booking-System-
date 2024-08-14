@@ -81,13 +81,10 @@ export class UsersController {
     return await this.usersService.updateUser(id, updateUserDto);
   }
 
+
+  // Endpoint to delete a user by ID
   @Delete(':id')
-  async deleteUser(@Param('id') id: string) {
-    try {
-      const deletedUser = await this.usersService.deleteUser(id);
-      return { message: 'User deleted successfully', user: deletedUser };
-    } catch (error) {
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
+  async deleteUser(@Param('id') id: string): Promise<void> {
+    return this.usersService.deleteUserById(id);
   }
 }
