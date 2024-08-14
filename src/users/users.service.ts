@@ -67,10 +67,10 @@ export class UsersService {
         // context: {
         //   url,
         // },
-        html: `Hello ,<br>Verify : <p>${url}</p>`,
+        html: `Hello ,<br>Please Visit Below Link to Verify : <p>${url}</p>`,
       });
       console.log(`Hashing Paswword `);
-      const password = await bcrypt.hash(user.password[0], 10);
+      const password = await bcrypt.hash(user.password, 10);
       console.log('Paswword Hashed ');
 
       user.password = password;
@@ -259,14 +259,17 @@ export class UsersService {
 
     // Check if the user is a doctor
     if (user.role === 'doctor') {
-      await this.doctorModel.findOneAndDelete({ user: new Types.ObjectId(userId) });
+      await this.doctorModel.findOneAndDelete({
+        user: new Types.ObjectId(userId),
+      });
     }
 
     if (user.role === 'patient') {
-      await this.patientModel.findOneAndDelete({ user: new Types.ObjectId(userId) });
+      await this.patientModel.findOneAndDelete({
+        user: new Types.ObjectId(userId),
+      });
     }
     // Delete the user
     await this.userModel.findByIdAndDelete(userId);
   }
-
 }
