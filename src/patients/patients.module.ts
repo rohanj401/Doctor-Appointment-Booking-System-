@@ -3,6 +3,7 @@ import { PatientsController } from './patients.controller';
 import { PatientsService } from './patients.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Patient, PatientSchema } from 'src/schemas/Patient.schema';
+import { User, UserSchema } from 'src/schemas/User.schema';
 
 @Module({
   imports: [
@@ -11,6 +12,8 @@ import { Patient, PatientSchema } from 'src/schemas/Patient.schema';
         name: Patient.name,
         schema: PatientSchema,
       },
+      { name: User.name, schema: UserSchema },
+
     ]),
   ],
   controllers: [PatientsController],

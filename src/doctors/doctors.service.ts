@@ -9,12 +9,15 @@ import { CreateDoctorDto } from './dtos/create-doctor.dto';
 import { UpdateDoctorDto } from './dtos/update-doctor.dto';
 import { Doctor } from 'src/schemas/doctor.schema';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
+import { User } from 'src/schemas/User.schema';
 
 @Injectable()
 export class DoctorsService {
   constructor(
     private readonly cloudinaryService: CloudinaryService,
     @InjectModel(Doctor.name) private doctorModel: Model<Doctor>,
+    @InjectModel(User.name) private userModel: Model<User>, 
+
   ) {}
 
   // async createDoctor(createDoctorDto: CreateDoctorDto): Promise<Doctor> {
@@ -109,11 +112,18 @@ export class DoctorsService {
   //   return updatedDoctor;
   // }
 
-  async deleteDoctor(id: string): Promise<{ message: string }> {
-    const result = await this.doctorModel.deleteOne({ _id: id }).exec();
-    if (result.deletedCount === 0) {
-      throw new NotFoundException(`Doctor with ID "${id}" not found`);
+  async deleteDoctor(doctorId: string): Promise<void> {
+    const doctor = await this.doctorModel.findById(doctorId);
+
+    if (!doctor) {
+      throw new NotFoundException('Doctor not found');
     }
-    return { message: `Doctor with ID "${id}" deleted successfully` };
+
+    // Delete the corresponding user
+    await this.userModel.findByIdAndDelete(doctor.user);
+
+    // Delete the doctor
+    await this.doctorModel.findByIdAndDelete(doctorId);
   }
+  
 }

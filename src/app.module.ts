@@ -15,6 +15,7 @@ import { HttpModule } from '@nestjs/axios';
 import * as bodyParser from 'body-parser';
 import { PrescriptionModule } from './prescription/prescription.module';
 import { RatingsModule } from './ratings/ratings.module';
+import { ReportsModule } from './reports/reports.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { RatingsModule } from './ratings/ratings.module';
     HttpModule,
     PrescriptionModule,
     RatingsModule,
+    ReportsModule
   ],
   controllers: [AppController],
   providers: [AppService, CloudinaryService],
