@@ -32,7 +32,7 @@ export class UsersService {
     private readonly jwtService: JwtService,
     private readonly mailerService: MailerService,
     private readonly httpService: HttpService,
-  ) {}
+  ) { }
   async getUserByEmail(email) {
     try {
       console.log(email);
@@ -53,7 +53,7 @@ export class UsersService {
     const { email, name, password, role, ...otherData } = createUserDto;
     if (!userr) {
       //addedfor email verification
-      const payload = { email: user.email[0] };
+      const payload = { email: user.email };
       const token = this.jwtService.sign(payload, {
         secret: process.env.JwtSecret,
         expiresIn: '1h',
@@ -91,7 +91,7 @@ export class UsersService {
     const { email, name, password, role, ...otherData } = createUserPatientDto;
     if (!userr) {
       //addedfor email verification
-      const payload = { email: user.email[0] };
+      const payload = { email: user.email };
       const token = this.jwtService.sign(payload, {
         secret: process.env.JwtSecret,
         expiresIn: '1h',
@@ -109,7 +109,7 @@ export class UsersService {
       });
       //till here
       console.log(`Hashing Paswword `);
-      const password = await bcrypt.hash(user.password[0], 10);
+      const password = await bcrypt.hash(user.password, 10);
       console.log('Paswword Hashed ');
 
       user.password = password;

@@ -3,7 +3,7 @@ import { Types } from 'mongoose';
 
 export class UserDto {
   @Expose()
-  id: string;
+  _id: Types.ObjectId;
   @Expose()
   email: string;
   @Expose()
