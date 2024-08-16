@@ -6,10 +6,17 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import Configuration from '../config/configurations';
 import { MailerModule } from '@nestjs-modules/mailer';
+import { MongooseModule } from '@nestjs/mongoose';
+import { User, UserSchema } from 'src/schemas/User.schema';
+import { ResetToken, ResetTokenSchema } from 'src/schemas/reset-tokens.schema';
 
 @Module({
   imports: [
     UsersModule,
+    MongooseModule.forFeature([
+      { name: User.name, schema: UserSchema },
+      { name: ResetToken.name, schema: ResetTokenSchema },
+    ]),
     ConfigModule.forRoot({
       isGlobal: true,
       load: [Configuration],
