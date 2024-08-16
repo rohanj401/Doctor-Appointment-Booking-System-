@@ -10,44 +10,19 @@ import { UpdateDoctorDto } from './dtos/update-doctor.dto';
 import { Doctor } from 'src/schemas/doctor.schema';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { User } from 'src/schemas/User.schema';
+import { Availability } from 'src/schemas/Availability.schema';
+import { Slot } from 'src/schemas/Slot.schema';
 
 @Injectable()
 export class DoctorsService {
   constructor(
     private readonly cloudinaryService: CloudinaryService,
     @InjectModel(Doctor.name) private doctorModel: Model<Doctor>,
-    @InjectModel(User.name) private userModel: Model<User>, 
-
+    @InjectModel(User.name) private userModel: Model<User>,
+    @InjectModel(Slot.name) private slotModel: Model<Slot>,
+    @InjectModel(Availability.name)
+    private availabilityModel: Model<Availability>,
   ) {}
-
-  // async createDoctor(createDoctorDto: CreateDoctorDto): Promise<Doctor> {
-  //   try {
-  //     console.log(createDoctorDto);
-  //     let document = await this.cloudinaryService.uploadImage(
-  //       createDoctorDto.document,
-  //     );
-  //     let profilePic = await this.cloudinaryService.uploadImage(
-  //       createDoctorDto.profilePic,
-  //     );
-  //     delete createDoctorDto.profilePic;
-  //     delete createDoctorDto.document;
-  //     let doctor = {
-  //       documentUrl: document.secure_url,
-  //       profilePic: profilePic.secure_url,
-  //       ...createDoctorDto,
-  //     };
-  //     const newDoctor = new this.doctorModel(doctor);
-  //     return await newDoctor.save();
-  //   } catch (error) {
-  //     if (error.code === 11000) {
-  //       // Duplicate key error
-  //       throw new ConflictException(
-  //         'A doctor with this mobile number or email already exists.',
-  //       );
-  //     }
-  //     throw error;
-  //   }
-  // }
 
   async getDoctors(): Promise<Doctor[]> {
     return this.doctorModel.find().exec();
@@ -125,5 +100,91 @@ export class DoctorsService {
     // Delete the doctor
     await this.doctorModel.findByIdAndDelete(doctorId);
   }
-  
+
+  async addAvailability(data: any): Promise<Doctor> {
+    const doctor = await this.doctorModel.findById(data.doctorId);
+    if (!doctor) {
+      throw new NotFoundException(`Doctor with ID ${data.doctorId} not found`);
+    }
+
+    const timePerSlot = data.timePerSlot;
+    const newAvailabilityPromises = data.dates.map((date: string) => {
+      const slots = this.generateSlotsForDay(date, timePerSlot, doctor);
+      return this.availabilityModel.create({ date, slots });
+    });
+
+    const newAvailability = await Promise.all(newAvailabilityPromises);
+
+    doctor.availability.push(...newAvailability);
+    await doctor.save();
+
+    return doctor;
+  }
+
+  private generateSlotsForDay(
+    date: string,
+    timePerSlot: number,
+    doctor: Doctor, // Pass the doctor object to access clinicDetails
+  ): Slot[] {
+    const slots: Slot[] = [];
+    const clinicDetails = doctor.clinicDetails;
+
+    // Extract timings from clinicDetails
+    const morningStart = this.convertTimeToMinutes(
+      clinicDetails.morningStartTime,
+    );
+    const morningEnd = this.convertTimeToMinutes(clinicDetails.morningEndTime);
+    const eveningStart = this.convertTimeToMinutes(
+      clinicDetails.eveningStartTime,
+    );
+    const eveningEnd = this.convertTimeToMinutes(clinicDetails.eveningEndTime);
+
+    // Generate morning slots if timings are available
+    if (morningStart !== undefined && morningEnd !== undefined) {
+      slots.push(
+        ...this.generateSlotsForPeriod(morningStart, morningEnd, timePerSlot),
+      );
+    }
+
+    // Generate evening slots if timings are available
+    if (eveningStart !== undefined && eveningEnd !== undefined) {
+      slots.push(
+        ...this.generateSlotsForPeriod(eveningStart, eveningEnd, timePerSlot),
+      );
+    }
+
+    return slots;
+  }
+
+  private generateSlotsForPeriod(
+    startTime: number,
+    endTime: number,
+    timePerSlot: number,
+  ): Slot[] {
+    const slots: Slot[] = [];
+
+    for (let time = startTime; time < endTime; time += timePerSlot) {
+      const hours = Math.floor(time / 60)
+        .toString()
+        .padStart(2, '0');
+      const minutes = (time % 60).toString().padStart(2, '0');
+      const slotTime = `${hours}:${minutes}`;
+
+      slots.push(
+        new this.slotModel({
+          time: slotTime,
+          status: 'available',
+        }),
+      );
+    }
+
+    return slots;
+  }
+
+  private convertTimeToMinutes(time: string): number | undefined {
+    if (!time) return undefined;
+
+    const [hours, minutes] = time.split(':').map(Number);
+    return (hours || 0) * 60 + (minutes || 0);
+  }
 }

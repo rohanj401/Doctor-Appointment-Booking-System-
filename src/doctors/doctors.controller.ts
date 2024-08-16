@@ -23,24 +23,15 @@ import {
 export class DoctorsController {
   constructor(private doctorsService: DoctorsService) {}
 
-  // @Post()
-  // @UseInterceptors(AnyFilesInterceptor())
-  // createDoctor(
-  //   @Body() createDoctorDto: CreateDoctorDto,
-  //   @UploadedFiles() files: Array<Express.Multer.File>,
-  // ) {
-  //   const document = files.find((file) => file.fieldname === 'document');
-  //   const profilePic = files.find((file) => file.fieldname === 'profilePic');
-
-  //   if (document) {
-  //     createDoctorDto.document = document;
-  //   }
-  //   if (profilePic) {
-  //     createDoctorDto.profilePic = profilePic;
-  //   }
-
-  //   return this.doctorsService.createDoctor(createDoctorDto);
-  // }
+  @Post('/addAvailability')
+  async addDoctorAvailability(
+    @Body() data: any,
+    // @Body('dates') dates: string[],
+    // @Body('timePerSlot') timePerSlot: number,
+  ) {
+    console.log(data);
+    return this.doctorsService.addAvailability(data);
+  }
 
   @Get()
   getDoctors() {

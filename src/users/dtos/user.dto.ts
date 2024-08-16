@@ -11,7 +11,7 @@ export class UserDto {
   @Expose()
   role: string;
   @Expose()
-  is_verified: string;
+  isVerified: string;
   @Expose()
   isEmailVerified: string;
 }

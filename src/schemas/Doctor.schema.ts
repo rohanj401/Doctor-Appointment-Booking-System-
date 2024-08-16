@@ -1,6 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 import { ClinicDetails } from 'src/doctors/dtos/clinicDetails';
+import { Availability, AvailabilitySchema } from './Availability.schema';
 
 @Schema()
 export class Doctor extends Document {
@@ -35,7 +36,7 @@ export class Doctor extends Document {
   document: string;
 
   @Prop({ default: false })
-  is_verified: boolean;
+  isVerified: boolean;
 
   @Prop({ default: false })
   isEmailVerified: boolean;
@@ -64,6 +65,9 @@ export class Doctor extends Document {
     type: 'Point';
     coordinates: [number, number]; // [longitude, latitude]
   };
+
+  @Prop({ type: [AvailabilitySchema], required: true })
+  availability: Availability[];
 }
 
 export const DoctorSchema = SchemaFactory.createForClass(Doctor);

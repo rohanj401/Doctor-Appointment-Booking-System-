@@ -12,11 +12,7 @@ import { Transform } from 'class-transformer';
 import mongoose from 'mongoose';
 
 export class CreateDoctorDto {
-
-
-  
-  user: mongoose.Types.ObjectId
-
+  user: mongoose.Types.ObjectId;
 
   @IsString()
   speciality: string;
@@ -61,7 +57,7 @@ export class CreateDoctorDto {
 
   @IsOptional()
   @IsBoolean()
-  is_verified?: boolean;
+  isVerified?: boolean;
 
   // document?: Express.Multer.File;
 
