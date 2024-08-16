@@ -94,7 +94,7 @@ export class CreateUserDoctorDto {
 
   @IsOptional()
   @IsBoolean()
-  is_verified?: boolean;
+  isVerified?: boolean;
 
   @IsNotEmpty()
   @IsString()

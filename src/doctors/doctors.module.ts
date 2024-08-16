@@ -6,10 +6,22 @@ import { Doctor } from 'src/schemas/doctor.schema';
 import { DoctorSchema } from 'src/schemas/doctor.schema';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { User, UserSchema } from 'src/schemas/User.schema';
+import {
+  Availability,
+  AvailabilitySchema,
+} from 'src/schemas/Availability.schema';
+import { Slot, SlotSchema } from 'src/schemas/Slot.schema';
 
 @Module({
-  imports: [MongooseModule.forFeature([{ name: Doctor.name, schema: DoctorSchema }, { name: User.name, schema: UserSchema },])],
+  imports: [
+    MongooseModule.forFeature([
+      { name: Doctor.name, schema: DoctorSchema },
+      { name: User.name, schema: UserSchema },
+      { name: Availability.name, schema: AvailabilitySchema },
+      { name: Slot.name, schema: SlotSchema },
+    ]),
+  ],
   controllers: [DoctorsController],
-  providers: [DoctorsService,CloudinaryService],
+  providers: [DoctorsService, CloudinaryService],
 })
 export class DoctorsModule {}
