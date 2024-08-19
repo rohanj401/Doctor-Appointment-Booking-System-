@@ -69,7 +69,9 @@ export class AuthService {
   }
 
   async sendPasswordResetEmail(to: string, token: string) {
-    const resetLink = `http://localhost:${process.env.PORT}/auth/forgot-password/token?token=${token}`;
+// emailfeature
+    const resetLink = `http://localhost:5000/forgot-password/token?token=${token}`;
+// main
     const mailOptions = {
       from: 'Auth-backend service',
       to: to,
