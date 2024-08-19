@@ -3,7 +3,7 @@ import {
   ConflictException,
   NotFoundException,
 } from '@nestjs/common';
-import { Model } from 'mongoose';
+import mongoose, { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { CreateDoctorDto } from './dtos/create-doctor.dto';
 import { UpdateDoctorDto } from './dtos/update-doctor.dto';
@@ -22,8 +22,34 @@ export class DoctorsService {
     @InjectModel(Slot.name) private slotModel: Model<Slot>,
     @InjectModel(Availability.name)
     private availabilityModel: Model<Availability>,
-  ) {}
+  ) { }
 
+  async findDoctors(
+    status: 'all' | 'verified' | 'unverified',
+    page: number,
+    pageSize: number,
+  ) {
+    const query: any = {};
+    if (status === 'verified') {
+      query.isVerified = true;
+    } else if (status === 'unverified') {
+      query.isVerified = false;
+    }
+
+    const [doctors, totalDoctors] = await Promise.all([
+      this.doctorModel
+        .find(query)
+        .skip((page - 1) * pageSize)
+        .limit(pageSize)
+        .exec(),
+      this.doctorModel.countDocuments(query).exec(),
+    ]);
+
+    return {
+      doctors,
+      total: totalDoctors,
+    };
+  }
   async getDoctors(): Promise<Doctor[]> {
     return this.doctorModel.find().exec();
   }
@@ -33,6 +59,19 @@ export class DoctorsService {
     if (!doctor) {
       throw new NotFoundException(`Doctor with ID "${id}" not found`);
     }
+    return doctor;
+  }
+
+  async fetchDoctorByUserId(userId: string) {
+    console.log('getting doctor by userId');
+    const doctor = await this.doctorModel
+      .findOne({ user: new mongoose.Types.ObjectId(userId) })
+      .exec();
+
+    if (!doctor) {
+      throw new NotFoundException(`Doctor with user ID ${userId} not found`);
+    }
+
     return doctor;
   }
 
@@ -101,7 +140,20 @@ export class DoctorsService {
     await this.doctorModel.findByIdAndDelete(doctorId);
   }
 
+  async verifyDoctor(id: string): Promise<Doctor> {
+    const doctor = await this.doctorModel.findById(id);
+    if (!doctor) {
+      throw new NotFoundException(`Doctor with ID ${id} not found`);
+    }
+
+    doctor.isVerified = true;
+    await doctor.save();
+
+    return doctor;
+  }
+
   async addAvailability(data: any): Promise<Doctor> {
+    console.log(data);
     const doctor = await this.doctorModel.findById(data.doctorId);
     if (!doctor) {
       throw new NotFoundException(`Doctor with ID ${data.doctorId} not found`);

@@ -16,7 +16,7 @@ import { ForgotPasswordDto } from './dtos/forgot-password.dto';
 import { ResetPasswordDto } from './dtos/reset-password.dto';
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(private authService: AuthService) { }
   @HttpCode(HttpStatus.OK)
   @Post('/login')
   signIn(@Body() signInDto: signInDto) {
@@ -39,6 +39,7 @@ export class AuthController {
 
   @Put('/reset-password')
   async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
+    console.log('resetting Pass');
     return this.authService.resetPassword(
       resetPasswordDto.newPassword,
       resetPasswordDto.resetToken,

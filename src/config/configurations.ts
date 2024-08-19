@@ -10,6 +10,7 @@ export default () => ({
 
     MailUserName: process.env.EMAIL_USER,
     MailPassword: process.env.EMAIL_PASSWORD,
+
   },
 
   //   from: process.env.EMAIL_FROM,
