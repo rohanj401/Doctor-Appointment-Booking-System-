@@ -16,6 +16,7 @@ import * as bodyParser from 'body-parser';
 import { PrescriptionModule } from './prescription/prescription.module';
 import { RatingsModule } from './ratings/ratings.module';
 import { ReportsModule } from './reports/reports.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -35,7 +36,8 @@ import { ReportsModule } from './reports/reports.module';
     HttpModule,
     PrescriptionModule,
     RatingsModule,
-    ReportsModule
+    ReportsModule,
+    AdminModule
   ],
   controllers: [AppController],
   providers: [AppService, CloudinaryService],

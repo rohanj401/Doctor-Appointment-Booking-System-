@@ -21,6 +21,7 @@ import { Response } from 'express';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { CreateUserDoctorDto } from './dtos/create-user-doctor.dto';
 import { CreateUserPatientDto } from './dtos/create-user-patient.dto';
+import { CreateUserAdminDto } from './dtos/create-user-admin.dto';
 
 @Controller('users')
 export class UsersController {
@@ -87,4 +88,17 @@ export class UsersController {
   async deleteUser(@Param('id') id: string): Promise<void> {
     return this.usersService.deleteUserById(id);
   }
+
+
+
+  //admin creation----------
+
+  @Post('/admin')
+  async createUserAdmin(
+    @Body() createUserAdminDto: CreateUserAdminDto,
+  ) {
+    return this.usersService.createUserAdmin(createUserAdminDto);
+  }
+
+
 }
