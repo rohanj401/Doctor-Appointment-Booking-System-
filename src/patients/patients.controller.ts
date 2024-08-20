@@ -15,7 +15,7 @@ import { UpdatePatientDto } from './dtos/update-patient.dto';
 
 @Controller('patients')
 export class PatientsController {
-  constructor(private patientsService: PatientsService) {}
+  constructor(private patientsService: PatientsService) { }
   @Post()
   createUser(@Body() createpatientDto: CreatePatientDto) {
     console.log(createpatientDto);
@@ -39,10 +39,7 @@ export class PatientsController {
     return patient;
   }
 
-  @Get('/fetchPatientByUserId/:id')
-  async fetchPatientByUserId(@Param('id') id: string) {
-    return this.patientsService.fetchPatientByUserId(id);
-  }
+
 
   @Patch(':id')
   updatePatient(
