@@ -21,6 +21,7 @@ import { Patient } from 'src/schemas/Patient.schema';
 import { CreateUserDoctorDto } from './dtos/create-user-doctor.dto';
 import { CreateUserPatientDto } from './dtos/create-user-patient.dto';
 import { Coordinates } from 'src/doctors/dtos/coordinates';
+import { CreateUserAdminDto } from './dtos/create-user-admin.dto';
 @Injectable()
 export class UsersService {
   constructor(
@@ -50,7 +51,7 @@ export class UsersService {
     console.log(createUserDto.profilePic);
     const user = new this.userModel(createUserDto);
     const userr = await this.getUserByEmail(user.email);
-    const { email, name, password, role, ...otherData } = createUserDto;
+    const { email, password, role, ...otherData } = createUserDto;
     if (!userr) {
       //addedfor email verification
       const payload = { email: user.email };
@@ -59,7 +60,7 @@ export class UsersService {
         expiresIn: '1h',
       });
       console.log(`Toke is ${token}`);
-      const url = `http://localhost:3000/users/verify-email?token=${token}`;
+      const url = `http://localhost:${process.env.NEXT_PORT}/users/verify-email?token=${token}`;
       await this.mailerService.sendMail({
         to: email,
         subject: 'Email Verification',
@@ -77,7 +78,7 @@ export class UsersService {
       await user.save();
 
       console.log('Saving doctor data');
-      await this.saveDoctor({ ...otherData, user: user._id, name: user.name });
+      await this.saveDoctor({ ...otherData, user: user._id, email: user.email });
     } else {
       throw new BadRequestException('User with this email-Id Allready Exist ');
     }
@@ -88,7 +89,7 @@ export class UsersService {
     // console.log(createUserPatientDto.profilePic);
     const user = new this.userModel(createUserPatientDto);
     const userr = await this.getUserByEmail(user.email);
-    const { email, name, password, role, ...otherData } = createUserPatientDto;
+    const { email, password, role, ...otherData } = createUserPatientDto;
     if (!userr) {
       //addedfor email verification
       const payload = { email: user.email };
@@ -97,7 +98,7 @@ export class UsersService {
         expiresIn: '1h',
       });
       console.log(`Toke is ${token}`);
-      const url = `http://localhost:3000/users/verify-email?token=${token}`;
+      const url = `http://localhost:${process.env.PORT}/users/verify-email?token=${token}`;
       await this.mailerService.sendMail({
         to: email,
         subject: 'Email Verification',
@@ -115,13 +116,9 @@ export class UsersService {
       user.password = password;
       await user.save();
 
-      if (role === 'doctor') {
-        console.log('Saving doctor data');
-        await this.saveDoctor({ ...otherData, user: user._id });
-      } else if (role === 'patient') {
-        console.log('Saving patient data');
-        await this.savePatient({ ...otherData, user: user._id });
-      }
+
+      await this.savePatient({ ...otherData, user: user._id, email: user.email });
+
     } else {
       throw new BadRequestException('User with this email-Id Allready Exist ');
     }
@@ -156,7 +153,41 @@ export class UsersService {
       });
 
       console.log(newDoctor);
-      return await newDoctor.save();
+      await newDoctor.save();
+
+      //send mail-----------------------------------------------------------
+
+      const { email, name, speciality, contactNumber, profilePic } = createDoctorDto;
+      console.log(email, name, speciality, contactNumber, profilePic);
+
+      await this.mailerService.sendMail({
+        to: email,
+        subject: 'Welcome to Our Platform!',
+        html: `
+<html>
+<body>
+    <h1>Welcome to Our Platform, Dr. ${name}!</h1>
+    <p>We are excited to have you on board as one of our esteemed doctors.</p>
+    <p>Thank you for registering. Your profile has been successfully created.</p>
+    <p>Here are some details about your registration:</p>
+    <ul>
+        <li><strong>Name:</strong> ${name}</li>
+        <li><strong>Specialty:</strong> ${speciality}</li>
+        <li><strong>Contact Number:</strong> ${contactNumber}</li>
+    </ul>
+    <p>Once your details are verified by our admin, you will be added to the list of doctors available to patients. 
+    You will receive a notification email once your verification is complete.</p>
+    
+    <p>You can check your profile or update your details <a href="${profilePic}">here</a>.</p>
+    
+    <p>If you have any questions, feel free to contact us at <a href="mailto:support@example.com">support@example.com</a>.</p>
+    <p>Best regards,<br>The Platform Team</p>
+</body>
+</html>
+            `,
+      });
+
+      return newDoctor;
     } catch (error) {
       if (error.code === 11000) {
         throw new ConflictException(
@@ -180,7 +211,45 @@ export class UsersService {
         ...createPatientDto,
         address,
       });
-      return await newPatient.save();
+
+      //saving patient
+      await newPatient.save();
+
+
+      //sending mail---------------------------
+
+      const { email, name, contactNumber, profilePic } = createPatientDto;
+
+      console.log(email, name, contactNumber, profilePic);
+
+      await this.mailerService.sendMail({
+        to: email,
+        subject: 'Welcome to Our Platform!',
+        html: `
+      <html>
+      <body>
+          <h1>Welcome to Our Platform, ${name}!</h1>
+          <p>Thank you for registering. Your account has been successfully created.</p>
+          <p>Here are some details about your registration:</p>
+          <ul>
+              <li><strong>Name:</strong> ${name}</li>
+              <li><strong>Email:</strong> ${email}</li>
+              <li><strong>Contact Number:</strong> ${contactNumber}</li>
+                  </ul>
+                  <p>You can now browse and book appointments with our doctors.</p>
+
+                  <p>You can check your profile or update your details <a href="${profilePic}">here</a>.</p>
+                  
+                  <p>If you have any questions, feel free to contact us at <a href="mailto:support@example.com">support@example.com</a>.</p>
+                  <p>Best regards,<br>The Platform Team</p>
+              </body>
+              </html>
+    `,
+      });
+
+
+
+      return newPatient;
     } catch (error) {
       if (error.code === 11000) {
         throw new ConflictException(
@@ -272,4 +341,27 @@ export class UsersService {
     // Delete the user
     await this.userModel.findByIdAndDelete(userId);
   }
+
+
+
+  //admin Creation------------------------------------------
+  async createUserAdmin(createUserDto: CreateUserAdminDto) {
+
+    const user = new this.userModel(createUserDto);
+    const userr = await this.getUserByEmail(user.email);
+    const { email, name, password, role, ...otherData } = createUserDto;
+    if (!userr) {
+
+      console.log(`Hashing Paswword `);
+      const password = await bcrypt.hash(user.password, 10);
+      console.log('Paswword Hashed ');
+
+      user.password = password;
+      await user.save();
+      return user;
+    } else {
+      throw new BadRequestException('Admin with this email-Id Allready Exist ');
+    }
+  }
+
 }

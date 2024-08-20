@@ -7,6 +7,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UploadedFiles,
   UseInterceptors,
 } from '@nestjs/common';
@@ -21,7 +22,7 @@ import {
 
 @Controller('doctors')
 export class DoctorsController {
-  constructor(private doctorsService: DoctorsService) {}
+  constructor(private doctorsService: DoctorsService) { }
 
   @Post('/addAvailability')
   async addDoctorAvailability(
@@ -33,9 +34,29 @@ export class DoctorsController {
     return this.doctorsService.addAvailability(data);
   }
 
-  @Get()
-  getDoctors() {
-    return this.doctorsService.getDoctors();
+  @Post(':id/verify')
+  async verifyDoctor(@Param('id') id: string) {
+    return this.doctorsService.verifyDoctor(id);
+  }
+
+  @Get('/fetchDoctorByUserId/:id')
+  async fetchDoctorByUserId(@Param('id') id: string) {
+    return this.doctorsService.fetchDoctorByUserId(id);
+  }
+
+  @Get('/getAllDoctors-Admin')
+  async getDoctorss(
+    @Query('status') status: 'all' | 'verified' | 'unverified' = 'all',
+    @Query('page') page: number = 1,
+    @Query('pageSize') pageSize: number = 10,
+  ) {
+    console.log('getting all doctors');
+    const result = await this.doctorsService.findDoctors(
+      status,
+      page,
+      pageSize,
+    );
+    return result;
   }
 
   @Get('getNearByDoctors')
@@ -44,13 +65,18 @@ export class DoctorsController {
     return this.doctorsService.findNearbyDoctors(data);
   }
 
-  @Get(':id')
+  @Get('/getDoctorById/:id')
   async getDoctorById(@Param('id') id: string) {
     const isValid = mongoose.Types.ObjectId.isValid(id);
     if (!isValid) throw new HttpException('Doctor Not Found', 404);
     const doctor = await this.doctorsService.getDoctorById(id);
     if (!doctor) throw new HttpException('Doctor Not Found ', 404);
     return doctor;
+  }
+
+  @Get()
+  getDoctors() {
+    return this.doctorsService.getDoctors();
   }
 
   // @Patch(':id')
