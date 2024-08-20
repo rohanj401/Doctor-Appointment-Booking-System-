@@ -16,13 +16,9 @@ import * as bodyParser from 'body-parser';
 import { PrescriptionModule } from './prescription/prescription.module';
 import { RatingsModule } from './ratings/ratings.module';
 import { ReportsModule } from './reports/reports.module';
-import { AdminModule } from './admin/admin.module';
-import { ConfigModule } from '@nestjs/config';
-import configuration from './config/configurations';
 
 @Module({
   imports: [
-
     ConfigModule.forRoot({
       load: [configuration],
       isGlobal: true,
@@ -45,9 +41,8 @@ import configuration from './config/configurations';
     PrescriptionModule,
     RatingsModule,
     ReportsModule,
-    AdminModule
   ],
   controllers: [AppController],
   providers: [AppService, CloudinaryService],
 })
-export class AppModule { }
+export class AppModule {}

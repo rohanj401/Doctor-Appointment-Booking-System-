@@ -33,7 +33,7 @@ export class UsersService {
     private readonly jwtService: JwtService,
     private readonly mailerService: MailerService,
     private readonly httpService: HttpService,
-  ) { }
+  ) {}
   async getUserByEmail(email) {
     try {
       console.log(email);
@@ -78,7 +78,11 @@ export class UsersService {
       await user.save();
 
       console.log('Saving doctor data');
-      await this.saveDoctor({ ...otherData, user: user._id, email: user.email });
+      await this.saveDoctor({
+        ...otherData,
+        user: user._id,
+        email: user.email,
+      });
     } else {
       throw new BadRequestException('User with this email-Id Allready Exist ');
     }
@@ -116,9 +120,11 @@ export class UsersService {
       user.password = password;
       await user.save();
 
-
-      await this.savePatient({ ...otherData, user: user._id, email: user.email });
-
+      await this.savePatient({
+        ...otherData,
+        user: user._id,
+        email: user.email,
+      });
     } else {
       throw new BadRequestException('User with this email-Id Allready Exist ');
     }
@@ -157,7 +163,8 @@ export class UsersService {
 
       //send mail-----------------------------------------------------------
 
-      const { email, name, speciality, contactNumber, profilePic } = createDoctorDto;
+      const { email, name, speciality, contactNumber, profilePic } =
+        createDoctorDto;
       console.log(email, name, speciality, contactNumber, profilePic);
 
       await this.mailerService.sendMail({
@@ -215,7 +222,6 @@ export class UsersService {
       //saving patient
       await newPatient.save();
 
-
       //sending mail---------------------------
 
       const { email, name, contactNumber, profilePic } = createPatientDto;
@@ -246,8 +252,6 @@ export class UsersService {
               </html>
     `,
       });
-
-
 
       return newPatient;
     } catch (error) {
@@ -342,16 +346,12 @@ export class UsersService {
     await this.userModel.findByIdAndDelete(userId);
   }
 
-
-
   //admin Creation------------------------------------------
   async createUserAdmin(createUserDto: CreateUserAdminDto) {
-
     const user = new this.userModel(createUserDto);
     const userr = await this.getUserByEmail(user.email);
     const { email, name, password, role, ...otherData } = createUserDto;
     if (!userr) {
-
       console.log(`Hashing Paswword `);
       const password = await bcrypt.hash(user.password, 10);
       console.log('Paswword Hashed ');
@@ -363,5 +363,4 @@ export class UsersService {
       throw new BadRequestException('Admin with this email-Id Allready Exist ');
     }
   }
-
 }

@@ -3,7 +3,7 @@ import {
   ConflictException,
   NotFoundException,
 } from '@nestjs/common';
-import mongoose, { Model } from 'mongoose';
+import mongoose, { Model, Types } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { CreateDoctorDto } from './dtos/create-doctor.dto';
 import { UpdateDoctorDto } from './dtos/update-doctor.dto';
@@ -12,6 +12,7 @@ import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { User } from 'src/schemas/User.schema';
 import { Availability } from 'src/schemas/Availability.schema';
 import { Slot } from 'src/schemas/Slot.schema';
+import { CancelSlotDto } from './dtos/cancel-slot.dto';
 
 @Injectable()
 export class DoctorsService {
@@ -22,7 +23,7 @@ export class DoctorsService {
     @InjectModel(Slot.name) private slotModel: Model<Slot>,
     @InjectModel(Availability.name)
     private availabilityModel: Model<Availability>,
-  ) { }
+  ) {}
 
   async findDoctors(
     status: 'all' | 'verified' | 'unverified',
@@ -152,6 +153,16 @@ export class DoctorsService {
     return doctor;
   }
 
+  async fetchAvailableDates(doctorId: string) {
+    const doctor = await this.doctorModel.findById(doctorId).exec();
+
+    if (!doctor) {
+      throw new NotFoundException(`Doctor with ID ${doctorId} not found`);
+    }
+
+    return doctor.availability; // Adjust the field name if needed
+  }
+
   async addAvailability(data: any): Promise<Doctor> {
     console.log(data);
     const doctor = await this.doctorModel.findById(data.doctorId);
@@ -238,5 +249,81 @@ export class DoctorsService {
 
     const [hours, minutes] = time.split(':').map(Number);
     return (hours || 0) * 60 + (minutes || 0);
+  }
+
+  //Schedule Management Cancelling Appointments
+
+  async cancelAllSlots(doctorId: string, date: Date): Promise<any> {
+    try {
+      // Convert date to YYYY-MM-DD format
+      const isoDate = date.toISOString().split('T')[0];
+
+      // Find the doctor
+      const doctor = await this.doctorModel.findById(doctorId);
+
+      if (!doctor) {
+        return { message: 'Doctor not found' };
+      }
+
+      // Find the index of the availability entry for the given date
+      const availabilityIndex = doctor.availability.findIndex(
+        (avail) => avail.date === isoDate,
+      );
+
+      if (availabilityIndex === -1) {
+        return { message: 'No availability found for the given date' };
+      }
+
+      // Remove the availability entry from the array
+      doctor.availability.splice(availabilityIndex, 1);
+      await doctor.save();
+
+      return { message: 'All slots canceled successfully and date removed' };
+    } catch (error) {
+      throw new Error(`Error canceling all slots: ${error.message}`);
+    }
+  }
+  async cancelSlot(cancelSlotDto: CancelSlotDto): Promise<void> {
+    const { doctorId, date, slotId } = cancelSlotDto;
+    console.log('Cancelling a slot');
+
+    // Convert date to ISO string format for MongoDB query
+    const isoDate = new Date(date).toISOString().split('T')[0]; // Use only the date part
+    console.log(`Doctor ID: ${doctorId}, Date: ${isoDate}, Slot ID: ${slotId}`);
+
+    // Convert IDs to ObjectId
+    const doctorObjectId = new Types.ObjectId(doctorId);
+    const slotObjectId = new Types.ObjectId(slotId);
+
+    // Update the slot's status to 'cancelled' in the specified date
+    const result = await this.doctorModel.updateOne(
+      {
+        _id: doctorObjectId, // Doctor ID
+        'availability.date': isoDate, // Date in availability
+        'availability.slots._id': slotObjectId, // Slot ID
+      },
+      {
+        $set: {
+          'availability.$.slots.$[slot].status': 'cancelled', // Set status to 'cancelled'
+        },
+      },
+      {
+        arrayFilters: [
+          { 'slot._id': slotObjectId }, // Filter for the correct slot
+        ],
+        multi: true, // Apply to all matching documents
+      },
+    );
+
+    console.log(`Matched Count: ${result.matchedCount}`);
+    console.log(`Modified Count: ${result.modifiedCount}`);
+
+    if (result.matchedCount === 0) {
+      throw new NotFoundException('Slot not found');
+    }
+
+    if (result.modifiedCount === 0) {
+      throw new NotFoundException('Slot status was not updated');
+    }
   }
 }

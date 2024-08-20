@@ -62,4 +62,16 @@ export class PatientsService {
     // Delete the patient
     await this.patientModel.findByIdAndDelete(patientId);
   }
+  async fetchPatientByUserId(userId: string) {
+    console.log('getting patient by userId');
+    const patient = await this.patientModel
+      .findOne({ user: new mongoose.Types.ObjectId(userId) })
+      .exec();
+
+    if (!patient) {
+      throw new NotFoundException(`Patient with user ID ${userId} not found`);
+    }
+
+    return patient;
+  }
 }

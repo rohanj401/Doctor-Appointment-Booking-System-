@@ -13,8 +13,6 @@ import { nanoid } from 'nanoid';
 import { ResetToken } from 'src/schemas/reset-tokens.schema';
 import { MailerService } from '@nestjs-modules/mailer';
 
-
-
 @Injectable()
 export class AuthService {
   constructor(
@@ -23,12 +21,7 @@ export class AuthService {
     @InjectModel(User.name) private userModel: Model<User>,
     @InjectModel(ResetToken.name) private ResetTokenModel: Model<ResetToken>,
     private readonly mailerService: MailerService,
-  ) { }
-
-
-
-
-
+  ) {}
 
   async signIn(email: string, pass: string) {
     const user = await this.userService.getUserByEmail(email);
@@ -69,7 +62,6 @@ export class AuthService {
   }
 
   async sendPasswordResetEmail(to: string, token: string) {
-
     const resetLink = `http://localhost:${process.env.Next_PORT}/forgot-password/token?token=${token}`;
 
     const mailOptions = {
