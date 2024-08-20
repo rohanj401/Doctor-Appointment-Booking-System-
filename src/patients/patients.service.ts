@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import mongoose, { Model } from 'mongoose';
 import { Patient } from 'src/schemas/Patient.schema';
 import { CreatePatientDto } from './dtos/create-patient.dto';
 import { UpdatePatientDto } from './dtos/update-patient.dto';
@@ -44,5 +44,17 @@ export class PatientsService {
 
     // Delete the patient
     await this.patientModel.findByIdAndDelete(patientId);
+  }
+  async fetchPatientByUserId(userId: string) {
+    console.log('getting patient by userId');
+    const patient = await this.patientModel
+      .findOne({ user: new mongoose.Types.ObjectId(userId) })
+      .exec();
+
+    if (!patient) {
+      throw new NotFoundException(`Patient with user ID ${userId} not found`);
+    }
+
+    return patient;
   }
 }

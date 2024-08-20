@@ -32,7 +32,7 @@ export class UsersService {
     private readonly jwtService: JwtService,
     private readonly mailerService: MailerService,
     private readonly httpService: HttpService,
-  ) { }
+  ) {}
   async getUserByEmail(email) {
     try {
       console.log(email);
@@ -97,7 +97,8 @@ export class UsersService {
         expiresIn: '1h',
       });
       console.log(`Toke is ${token}`);
-      const url = `http://localhost:3000/users/verify-email?token=${token}`;
+      // const url = `http://localhost:3000/users/verify-email?token=${token}`;
+      const url = `http://localhost:${process.env.NEXT_PORT}/users/verify-email?token=${token}`;
       await this.mailerService.sendMail({
         to: email,
         subject: 'Email Verification',

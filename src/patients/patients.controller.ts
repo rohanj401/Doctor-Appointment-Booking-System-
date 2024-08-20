@@ -26,7 +26,10 @@ export class PatientsController {
   getPatients() {
     return this.patientsService.getPatients();
   }
-
+  @Get('/fetchPatientByUserId/:id')
+  async fetchPatientByUserId(@Param('id') id: string) {
+    return this.patientsService.fetchPatientByUserId(id);
+  }
   @Get(':id')
   async getPatientById(@Param('id') id: string) {
     const isValid = mongoose.Types.ObjectId.isValid(id);
@@ -49,5 +52,4 @@ export class PatientsController {
   async deletePatient(@Param('id') id: string): Promise<void> {
     return this.patientsService.deletePatient(id);
   }
-  
 }
