@@ -18,6 +18,9 @@ export class CreateDoctorDto {
   speciality: string;
 
   @IsString()
+  name: string;
+
+  @IsString()
   qualification: string;
 
   @IsString()

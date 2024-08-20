@@ -17,7 +17,7 @@ export class User {
 
   @Prop({
     required: true,
-    enum: ['doctor', 'patient'], // Define allowed roles
+    enum: ['doctor', 'patient', 'admin'], // Define allowed roles
   })
   role: string;
 

@@ -12,6 +12,11 @@ export class Patient {
   })
   contactNumber: string;
 
+  @Prop({
+    required: true,
+  })
+  name: string;
+
   @Prop()
   address: Address;
 

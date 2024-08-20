@@ -39,6 +39,11 @@ export class PatientsController {
     return patient;
   }
 
+  @Get('/fetchPatientByUserId/:id')
+  async fetchPatientByUserId(@Param('id') id: string) {
+    return this.patientsService.fetchPatientByUserId(id);
+  }
+
   @Patch(':id')
   updatePatient(
     @Param('id') id: string,

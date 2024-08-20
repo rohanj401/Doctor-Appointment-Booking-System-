@@ -16,11 +16,14 @@ import * as bodyParser from 'body-parser';
 import { PrescriptionModule } from './prescription/prescription.module';
 import { RatingsModule } from './ratings/ratings.module';
 import { ReportsModule } from './reports/reports.module';
-import { ConfigModule } from '@nestjs/config';
-import configuration from './config/configurations';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      load: [configuration],
+      isGlobal: true,
+    }),
+
     MongooseModule.forRoot(
       'mongodb://localhost:27017/doctor_appointment_booking',
     ),
@@ -38,10 +41,6 @@ import configuration from './config/configurations';
     PrescriptionModule,
     RatingsModule,
     ReportsModule,
-    ConfigModule.forRoot({
-      load: [configuration],
-      isGlobal: true,
-    }),
   ],
   controllers: [AppController],
   providers: [AppService, CloudinaryService],

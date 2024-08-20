@@ -117,6 +117,7 @@ export class DoctorsController {
   }
 
   @Get('/getDoctorById/:id')
+  @Get('/getDoctorById/:id')
   async getDoctorById(@Param('id') id: string) {
     const isValid = mongoose.Types.ObjectId.isValid(id);
     if (!isValid) throw new HttpException('Doctor Not Found', 404);

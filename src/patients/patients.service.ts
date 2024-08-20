@@ -6,12 +6,13 @@ import { CreatePatientDto } from './dtos/create-patient.dto';
 import { UpdatePatientDto } from './dtos/update-patient.dto';
 import { User } from 'src/schemas/User.schema';
 
+
 @Injectable()
 export class PatientsService {
   constructor(
     @InjectModel(Patient.name) private patientModel: Model<Patient>,
     @InjectModel(User.name) private userModel: Model<User>,
-  ) {}
+  ) { }
 
   createPatient(createPatientDto: CreatePatientDto) {
     const newPatient = new this.patientModel(createPatientDto);
@@ -31,6 +32,22 @@ export class PatientsService {
       new: true,
     });
   }
+
+  async fetchPatientByUserId(userId: string) {
+    console.log('getting patient by userId');
+    const patient = await this.patientModel
+      .findOne({ user: new mongoose.Types.ObjectId(userId) })
+      .exec();
+
+    if (!patient) {
+      throw new NotFoundException(`Patient with user ID ${userId} not found`);
+    }
+
+    return patient;
+  }
+
+
+
 
   async deletePatient(patientId: string): Promise<void> {
     const patient = await this.patientModel.findById(patientId);
