@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Param } from '@nestjs/common';
 import { get } from 'http';
 import { AdminService } from './admin.service';
 
@@ -9,7 +9,15 @@ export class AdminController {
 
 
     @Get()
-    getDoctors() {
+    getAdmins() {
         return this.adminService.getAdmins();
     }
+
+    // @Get('/fetchadminByUserId/:id')
+    // async fetchPatientByUserId(@Param('id') id: string) {
+    //     return this.adminService.fetchAdminByUserId(id);
+    // }
+
+
+
 }
