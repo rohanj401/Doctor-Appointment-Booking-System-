@@ -12,12 +12,15 @@ export class Appointment extends Document {
   patient: Types.ObjectId;
 
   @Prop({ required: true })
-  appointment_date: Date;
+  appointmentDate: Date;
+
+  @Prop({ required: true })
+  slot: Types.ObjectId;
 
   @Prop({
     type: String,
-    enum: ['pending', 'accepted', 'rejected', 'completed', 'cancelled'],
-    default: 'pending',
+    enum: ['accepted', 'completed', 'cancelled'],
+    default: 'accepted',
   })
   status: string;
 }
