@@ -1,18 +1,22 @@
 import { Type } from 'class-transformer';
-import { IsDate, IsEnum, IsMongoId } from 'class-validator';
+import { IsDate, IsEnum, IsMongoId, IsOptional } from 'class-validator';
 import { Types } from 'mongoose';
 
 export class CreateAppointmentDto {
   @IsMongoId()
-  doctor: Types.ObjectId;
+  doctorId: string; // Use string for ObjectId
 
   @IsMongoId()
-  patient: Types.ObjectId;
+  patientId: string; // Use string for ObjectId
 
   @IsDate()
   @Type(() => Date)
-  appointment_date: Date;
+  appointmentDate: Date;
 
-  @IsEnum(['pending', 'accepted', 'rejected', 'completed', 'cancelled'])
-  status?: string;
+  @IsMongoId()
+  slotId: string; // Use string for ObjectId
+
+  @IsEnum(['pending', 'accepted', , 'completed', 'cancelled'])
+  @IsOptional() // Make this optional if it's not always required
+  status?: string; // Use string for status
 }
