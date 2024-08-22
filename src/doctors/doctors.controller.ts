@@ -178,10 +178,12 @@ export class DoctorsController {
     @Query('state') state: string,
     @Query('city') city: string,
     @Query('specialty') specialty?: string,
+    @Query('gender') gender?: string,
     @Query('radius') radius?: string, // Accept radius as string for easier parsing
     @Query('location') location?: [number, number] // Accept location as string for easier parsing
   ) {
     console.log('Searching doctors controller');
+    console.log('from controller', state, city, specialty, gender, radius, location);
 
     // Validate and parse radius
     const radiusInKm = radius ? parseFloat(radius) : undefined;
@@ -189,17 +191,8 @@ export class DoctorsController {
       throw new BadRequestException('Invalid radius');
     }
 
-    // Validate and parse location
-    // let parsedLocation: [number, number] | undefined;
-    // if (location) {
-    //   const locationArray = location.split(',').map(coord => parseFloat(coord));
-    //   if (locationArray.length !== 2 || locationArray.some(isNaN)) {
-    //     throw new BadRequestException('Invalid location');
-    //   }
-    //   parsedLocation = [locationArray[1], locationArray[0]]; // [latitude, longitude]
-    // }
 
-    return this.doctorsService.searchDoctors(state, city, specialty, radiusInKm, location);
+    return this.doctorsService.searchDoctors(state, city, specialty, gender, radiusInKm, location);
   }
 }
 
