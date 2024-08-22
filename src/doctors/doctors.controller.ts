@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -25,7 +26,7 @@ import { CancelSlotDto } from './dtos/cancel-slot.dto';
 
 @Controller('doctors')
 export class DoctorsController {
-  constructor(private doctorsService: DoctorsService) {}
+  constructor(private doctorsService: DoctorsService) { }
 
   @Post('/addAvailability')
   async addDoctorAvailability(
@@ -117,7 +118,6 @@ export class DoctorsController {
   }
 
   @Get('/getDoctorById/:id')
-  @Get('/getDoctorById/:id')
   async getDoctorById(@Param('id') id: string) {
     const isValid = mongoose.Types.ObjectId.isValid(id);
     if (!isValid) throw new HttpException('Doctor Not Found', 404);
@@ -156,4 +156,50 @@ export class DoctorsController {
   async deleteDoctor(@Param('id') id: string): Promise<void> {
     return this.doctorsService.deleteDoctor(id);
   }
+
+
+  //get doctors by city, state, speciality
+  // @Get('search')
+  // async searchDoctors(
+  //   @Query('state') state: string,
+  //   @Query('city') city: string,
+  //   @Query('specialty') specialty?: string,
+  //   @Query('radius') radius?: number,
+  //   @Query('location') location?: [number, number], // [longitude, latitude]
+  // ) {
+  //   console.log('searching doctors controller');
+
+  //   return this.doctorsService.searchDoctors(state, city, specialty, radius, location);
+  // }
+
+
+  @Get('search')
+  async searchDoctors(
+    @Query('state') state: string,
+    @Query('city') city: string,
+    @Query('specialty') specialty?: string,
+    @Query('radius') radius?: string, // Accept radius as string for easier parsing
+    @Query('location') location?: [number, number] // Accept location as string for easier parsing
+  ) {
+    console.log('Searching doctors controller');
+
+    // Validate and parse radius
+    const radiusInKm = radius ? parseFloat(radius) : undefined;
+    if (radius && isNaN(radiusInKm)) {
+      throw new BadRequestException('Invalid radius');
+    }
+
+    // Validate and parse location
+    // let parsedLocation: [number, number] | undefined;
+    // if (location) {
+    //   const locationArray = location.split(',').map(coord => parseFloat(coord));
+    //   if (locationArray.length !== 2 || locationArray.some(isNaN)) {
+    //     throw new BadRequestException('Invalid location');
+    //   }
+    //   parsedLocation = [locationArray[1], locationArray[0]]; // [latitude, longitude]
+    // }
+
+    return this.doctorsService.searchDoctors(state, city, specialty, radiusInKm, location);
+  }
 }
+
