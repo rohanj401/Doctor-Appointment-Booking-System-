@@ -17,7 +17,7 @@ import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 
 @Controller('appointments')
 export class AppointmentsController {
-  constructor(private appointmentsService: AppointmentsService) {}
+  constructor(private appointmentsService: AppointmentsService) { }
 
   // @Post()
   // createAppointment(@Body() createAppointmentDto: CreateAppointmentDto) {

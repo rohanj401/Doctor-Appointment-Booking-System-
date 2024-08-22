@@ -19,11 +19,13 @@ export class DoctorsService {
   constructor(
     private readonly cloudinaryService: CloudinaryService,
     @InjectModel(Doctor.name) private doctorModel: Model<Doctor>,
+
+
     @InjectModel(User.name) private userModel: Model<User>,
     @InjectModel(Slot.name) private slotModel: Model<Slot>,
     @InjectModel(Availability.name)
     private availabilityModel: Model<Availability>,
-  ) {}
+  ) { }
 
   async findDoctors(
     status: 'all' | 'verified' | 'unverified',
@@ -94,6 +96,133 @@ export class DoctorsService {
       },
     });
   }
+
+
+
+
+  /////////////////////////////////////////////////////////////////////
+
+  // async searchDoctors(
+  //   state: string,
+  //   city: string,
+  //   speciality?: string,
+  //   radiusInKm?: number,
+  //   location?: [number, number] // [latitude, longitude]
+  // ) {
+  //   console.log('Searching doctors service method');
+  //   console.log('State:', state);
+  //   console.log('City:', city);
+  //   console.log('Specialty:', speciality);
+  //   console.log('Radius:', radiusInKm);
+  //   console.log('Location:', location);
+
+  //   // Initialize the query object
+  //   const query: any = {
+  //     'clinicDetails.state': state,
+  //     'clinicDetails.city': city
+  //   };
+
+  //   if (speciality) {
+  //     query.speciality = speciality;
+  //   }
+
+  //   if (radiusInKm && location) {
+  //     const radiusInMeters = radiusInKm * 1000;
+  //     query.location = {
+  //       $nearSphere: {
+  //         $geometry: {
+  //           type: 'Point',
+  //           coordinates: [+location[0], +location[1]], // [longitude, latitude]
+  //         },
+  //         $minDistance: 0,
+  //         $maxDistance: radiusInMeters,
+  //       },
+  //     };
+  //   }
+
+  //   console.log("Query is :", JSON.stringify(query));
+
+  //   try {
+  //     // Execute the query
+  //     const radiusInMeters = radiusInKm * 1000;
+  //     // const response = await this.doctorModel.find(query);
+  //     const response = await this.doctorModel.find({
+  //       location: {
+  //         $nearSphere: {
+  //           $geometry: {
+  //             type: 'Point',
+  //             coordinates: [+location[0], +location[1]], // [longitude, latitude]
+  //           },
+  //           $minDistance: 0,
+  //           $maxDistance: radiusInMeters,
+  //         },
+  //       }, "clinicDetails.state": state, "clinicDetails.city": city, "speciality": speciality
+  //     });
+  //     console.log('Doctors found:', response);
+  //     return response;
+  //   } catch (error) {
+  //     console.error('Error fetching doctors:', error);
+  //     throw new Error('Error fetching doctors');
+  //   }
+  // }
+
+
+
+  async searchDoctors(
+    state: string,
+    city: string,
+    speciality?: string,
+    radiusInKm?: number,
+    location?: [number, number] // [latitude, longitude]
+  ) {
+    console.log('Searching doctors service method');
+    console.log('State:', state);
+    console.log('City:', city);
+    console.log('Specialty:', speciality);
+    console.log('Radius:', radiusInKm);
+    console.log('Location:', location);
+
+    // Initialize the query object
+    const query: any = {
+      'clinicDetails.state': state,
+      'clinicDetails.city': city,
+      'isVerified': true
+    };
+
+    if (speciality) {
+      query.speciality = speciality;
+    }
+
+    // **Combine geolocation filter within the same query object**
+    if (radiusInKm && location) {
+      const radiusInMeters = radiusInKm * 1000;
+      query.location = {
+        $nearSphere: {
+          $geometry: {
+            type: 'Point',
+            coordinates: [+location[0], +location[1]], // [longitude, latitude]
+          },
+          $minDistance: 0,
+          $maxDistance: radiusInMeters,
+        },
+      };
+    }
+
+    console.log("Query is :", JSON.stringify(query));
+
+    try {
+      // **Use the query object directly with `find`**
+      const response = await this.doctorModel.find(query).exec();
+      console.log('Doctors found:', response);
+      return response;
+    } catch (error) {
+      console.error('Error fetching doctors:', error);
+      throw new Error('Error fetching doctors');
+    }
+  }
+
+
+
 
   // async updateDoctor(
   //   id: string,
