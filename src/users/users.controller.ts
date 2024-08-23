@@ -50,6 +50,12 @@ export class UsersController {
     return this.usersService.getUsers();
   }
 
+  @Get('/getUserByEmail')
+  async getUserByEmail(@Query('email') email: string) {
+    console.log("email is " + email);
+    return this.usersService.getUserByEmail(email);
+  }
+
   @Get('verify-email')
   async verifyEmail(@Query('token') token: string, @Res() res: Response) {
     console.log(`token is ${token}`);
