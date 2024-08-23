@@ -9,6 +9,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { Types } from 'mongoose';
 import { AppointmentsService } from './appointments.service';
@@ -17,7 +18,7 @@ import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 
 @Controller('appointments')
 export class AppointmentsController {
-  constructor(private appointmentsService: AppointmentsService) { }
+  constructor(private appointmentsService: AppointmentsService) {}
 
   // @Post()
   // createAppointment(@Body() createAppointmentDto: CreateAppointmentDto) {
@@ -47,11 +48,11 @@ export class AppointmentsController {
     }
   }
 
-  @Get()
-  getAppointments() {
-    return this.appointmentsService.getAppointments();
+  @Get('/getAppointmentsByDoctorId')
+  async getAppointments(@Query('doctorId') doctorId: string): Promise<any[]> {
+    console.log(`Fetching appointments by doctorId : ${doctorId}`);
+    return this.appointmentsService.findAppointmentsByDoctorId(doctorId);
   }
-
   @Get(':id')
   async getAppointmentById(@Param('id') id: string) {
     const isValid = Types.ObjectId.isValid(id);
@@ -61,6 +62,10 @@ export class AppointmentsController {
     return appointment;
   }
 
+  // @Get()
+  // getAppointments() {
+  //   return this.appointmentsService.getAppointments();
+  // }
   @Patch(':id')
   async updateAppointment(
     @Param('id') id: string,

@@ -11,6 +11,7 @@ import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 import { Doctor } from 'src/schemas/doctor.schema';
 import { Patient } from 'src/schemas/Patient.schema';
+import { Slot } from 'src/schemas/Slot.schema';
 
 @Injectable()
 export class AppointmentsService {
@@ -18,6 +19,7 @@ export class AppointmentsService {
     @InjectModel(Appointment.name) private appointmentModel: Model<Appointment>,
     @InjectModel(Doctor.name) private readonly doctorModel: Model<Doctor>,
     @InjectModel(Patient.name) private readonly patientModel: Model<Patient>,
+    @InjectModel(Slot.name) private readonly slotModel: Model<Slot>,
   ) {}
   async bookSlot(
     doctorId: Types.ObjectId,
@@ -84,18 +86,86 @@ export class AppointmentsService {
       throw new InternalServerErrorException(error.message);
     }
   }
-  // async createAppointment(
-  //   createAppointmentDto: CreateAppointmentDto,
-  // ): Promise<Appointment> {
-  //   try {
-  //     const newAppointment = new this.appointmentModel(createAppointmentDto);
-  //     return await newAppointment.save();
-  //   } catch (error) {
-  //     throw new ConflictException(
-  //       'An error occurred while creating the appointment.',
-  //     );
-  //   }
-  // }
+
+  async findAppointmentsByDoctorId(doctorId: string): Promise<any[]> {
+    console.log(`Fetching appointments by doctorId: ${doctorId}`);
+
+    // Fetch appointments and populate patient and slot details
+    const appointments = await this.appointmentModel
+      .find({ doctor: new Types.ObjectId(doctorId) })
+      .populate({
+        path: 'patient',
+        select: 'profilePic name contactNumber email', // Ensure these fields are included
+      })
+      .populate('slot') // Populate slot details (if necessary)
+      .exec();
+
+    if (!appointments || appointments.length === 0) {
+      throw new NotFoundException('No appointments found for this doctor');
+    }
+
+    // Fetch additional details for each appointment
+    const appointmentsWithDetails = await Promise.all(
+      appointments.map(async (appointment) => {
+        const patient = appointment.patient as any; // Use populated patient
+        const slot = appointment.slot as any; // Use populated slot (if available)
+        const doctor = await this.doctorModel
+          .findById(appointment.doctor)
+          .exec();
+
+        // Find the slot details from the doctor's availability
+        const availability = doctor?.availability.find(
+          (av) =>
+            new Date(av.date).toISOString().split('T')[0] ===
+            appointment.appointmentDate.toISOString().split('T')[0],
+        );
+
+        const slotDetails = availability?.slots.find(
+          (s) => s._id.toString() === appointment.slot.toString(), // Ensure _id comparison
+        );
+
+        return {
+          date: appointment.appointmentDate.toISOString().split('T')[0],
+          appointmentsBooked: [
+            {
+              slotId: appointment.slot.toString(),
+              time: slotDetails?.time,
+              patient: {
+                name: patient?.name,
+                contactNumber: patient?.contactNumber,
+                profilePic: patient?.profilePic, // Added profilePic
+                email: patient?.email, // Added email
+              },
+            },
+          ],
+        };
+      }),
+    );
+
+    // Reorganize the appointments into a grouped format
+    const groupedAppointments: any[] = [];
+    const dateMap: { [key: string]: any[] } = {};
+
+    appointmentsWithDetails.forEach((appointment) => {
+      const { date, appointmentsBooked } = appointment;
+
+      if (!dateMap[date]) {
+        dateMap[date] = [];
+      }
+
+      dateMap[date].push(...appointmentsBooked);
+    });
+
+    for (const date in dateMap) {
+      groupedAppointments.push({
+        date,
+        appointmentsBooked: dateMap[date],
+      });
+    }
+
+    console.log(JSON.stringify(groupedAppointments[0]));
+    return groupedAppointments;
+  }
 
   async getAppointments(): Promise<Appointment[]> {
     return this.appointmentModel
