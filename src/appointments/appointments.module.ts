@@ -6,6 +6,7 @@ import { AppointmentsService } from './appointments.service';
 import { AppointmentsController } from './appointments.controller';
 import { Doctor, DoctorSchema } from 'src/schemas/doctor.schema';
 import { Patient, PatientSchema } from 'src/schemas/Patient.schema';
+import { Slot, SlotSchema } from 'src/schemas/Slot.schema';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { Patient, PatientSchema } from 'src/schemas/Patient.schema';
       { name: Appointment.name, schema: AppointmentSchema },
       { name: Doctor.name, schema: DoctorSchema },
       { name: Patient.name, schema: PatientSchema },
+      { name: Slot.name, schema: SlotSchema },
     ]),
   ],
   providers: [AppointmentsService],
