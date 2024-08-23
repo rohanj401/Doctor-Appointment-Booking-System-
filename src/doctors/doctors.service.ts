@@ -20,12 +20,11 @@ export class DoctorsService {
     private readonly cloudinaryService: CloudinaryService,
     @InjectModel(Doctor.name) private doctorModel: Model<Doctor>,
 
-
     @InjectModel(User.name) private userModel: Model<User>,
     @InjectModel(Slot.name) private slotModel: Model<Slot>,
     @InjectModel(Availability.name)
     private availabilityModel: Model<Availability>,
-  ) { }
+  ) {}
 
   async findDoctors(
     status: 'all' | 'verified' | 'unverified',
@@ -97,26 +96,29 @@ export class DoctorsService {
     });
   }
 
-
   async searchDoctors(
     state: string,
     city: string,
     speciality?: string,
     gender?: string,
     radiusInKm?: number,
-    location?: [number, number] // [latitude, longitude]
-
-
+    location?: [number, number], // [latitude, longitude]
   ) {
-
-    console.log('from search doctor service', state, city, speciality, gender, radiusInKm, location);
-
+    console.log(
+      'from search doctor service',
+      state,
+      city,
+      speciality,
+      gender,
+      radiusInKm,
+      location,
+    );
 
     // Initialize the query object
     const query: any = {
       'clinicDetails.state': state,
       'clinicDetails.city': city,
-      'isVerified': true
+      isVerified: true,
     };
 
     if (speciality) {
@@ -142,7 +144,7 @@ export class DoctorsService {
       };
     }
 
-    // console.log("Query is :", JSON.stringify(query));
+    console.log('Query is :', JSON.stringify(query));
 
     try {
       // **Use the query object directly with `find`**
@@ -154,9 +156,6 @@ export class DoctorsService {
       throw new Error('Error fetching doctors');
     }
   }
-
-
-
 
   // async updateDoctor(
   //   id: string,
