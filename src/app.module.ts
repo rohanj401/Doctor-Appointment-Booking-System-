@@ -18,6 +18,7 @@ import { RatingsModule } from './ratings/ratings.module';
 import { ReportsModule } from './reports/reports.module';
 import { ConfigModule } from '@nestjs/config';
 import configuration from './config/configurations';
+import { ArticlesModule } from './articles/articles.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -42,6 +43,7 @@ import configuration from './config/configurations';
     PrescriptionModule,
     RatingsModule,
     ReportsModule,
+    ArticlesModule
   ],
   controllers: [AppController],
   providers: [AppService, CloudinaryService],
