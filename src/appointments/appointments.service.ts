@@ -95,7 +95,7 @@ export class AppointmentsService {
       .find({ doctor: new Types.ObjectId(doctorId) })
       .populate({
         path: 'patient',
-        select: 'profilePic name contactNumber email', // Ensure these fields are included
+        select: 'profilePic name contactNumber email _id', // Ensure these fields are included
       })
       .populate('slot') // Populate slot details (if necessary)
       .exec();
@@ -131,10 +131,11 @@ export class AppointmentsService {
               slotId: appointment.slot.toString(),
               time: slotDetails?.time,
               patient: {
+                patientId: patient?._id, // Include patientId
                 name: patient?.name,
                 contactNumber: patient?.contactNumber,
-                profilePic: patient?.profilePic, // Added profilePic
-                email: patient?.email, // Added email
+                profilePic: patient?.profilePic,
+                email: patient?.email,
               },
             },
           ],
