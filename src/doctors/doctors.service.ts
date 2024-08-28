@@ -2,6 +2,7 @@ import {
   Injectable,
   ConflictException,
   NotFoundException,
+  Inject,
 } from '@nestjs/common';
 import mongoose, { Model, Types } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
@@ -16,13 +17,14 @@ import { CancelSlotDto } from './dtos/cancel-slot.dto';
 import { Appointment } from 'src/schemas/Appointment.schema';
 import { Patient } from 'src/schemas/Patient.schema';
 import { MailerService } from '@nestjs-modules/mailer';
+import { Rating } from 'src/schemas/Ratings.schema';
 
 @Injectable()
 export class DoctorsService {
   constructor(
     private readonly cloudinaryService: CloudinaryService,
     @InjectModel(Doctor.name) private doctorModel: Model<Doctor>,
-
+    @InjectModel(Rating.name) private ratingModel: Model<Rating>,
     @InjectModel(User.name) private userModel: Model<User>,
     @InjectModel(Slot.name) private slotModel: Model<Slot>,
     @InjectModel(Availability.name)
@@ -58,8 +60,30 @@ export class DoctorsService {
       total: totalDoctors,
     };
   }
-  async getDoctors(): Promise<Doctor[]> {
-    return this.doctorModel.find().exec();
+  async getDoctors(): Promise<(Doctor & { avgRating: number })[]> {
+    const doctors = await this.doctorModel.find().exec();
+    const doctorsWithRatings: (Doctor & { avgRating: number })[] = [];
+
+    for (const doctor of doctors) {
+      console.log('doctor: ' + doctor._id);
+      const doctorObjectId =
+        typeof doctor._id === 'string' && new Types.ObjectId(doctor._id);
+      const ratings = await this.ratingModel
+        .find({ doctor: doctor._id })
+        .exec();
+      console.log('ratings: ' + ratings);
+      const avgRating =
+        ratings.length > 0
+          ? ratings.reduce((acc, rating) => acc + rating.rating, 0) /
+            ratings.length
+          : 0;
+      const doctorObject = doctor.toObject() as Doctor & { avgRating: number };
+      doctorObject.avgRating = avgRating;
+
+      doctorsWithRatings.push(doctorObject);
+    }
+
+    return doctorsWithRatings;
   }
 
   async getDoctorById(id: string): Promise<Doctor> {
@@ -156,7 +180,24 @@ export class DoctorsService {
       // **Use the query object directly with `find`**
       const response = await this.doctorModel.find(query).exec();
       console.log('Doctors found:', response);
-      return response;
+      const doctorsWithRatings: (Doctor & { avgRating: number })[] = [];
+
+    for (const doctor of response) {
+      const ratings = await this.ratingModel
+        .find({ doctor: doctor._id })
+        .exec();
+      console.log('ratings: ' + ratings);
+      const avgRating =
+        ratings.length > 0
+          ? ratings.reduce((acc, rating) => acc + rating.rating, 0) /
+            ratings.length
+          : 0;
+      const doctorObject = doctor.toObject() as Doctor & { avgRating: number };
+      doctorObject.avgRating = avgRating;
+
+      doctorsWithRatings.push(doctorObject);
+    }
+      return doctorsWithRatings;
     } catch (error) {
       console.error('Error fetching doctors:', error);
       throw new Error('Error fetching doctors');

@@ -5,15 +5,15 @@ import { Document } from 'mongoose';
 @Schema({ timestamps: true })
 export class Rating extends Document {
   @Prop({ type: Types.ObjectId, ref: 'Doctor', required: true })
- doctor_id: string;
-  
+  doctor: Types.ObjectId;
+
   @Prop({ type: Types.ObjectId, ref: 'Patient', required: true })
- patient_id: string;
+  patient: Types.ObjectId;
 
   @Prop({
     required: true,
   })
- rating: string;
+  rating: number;
 
   @Prop({ required: true })
   comment: string;

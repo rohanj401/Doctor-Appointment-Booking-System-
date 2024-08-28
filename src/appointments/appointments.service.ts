@@ -187,7 +187,7 @@ export class AppointmentsService {
     }
     return appointment;
   }
-
+  
   async updateAppointment(
     id: string,
     updateAppointmentDto: UpdateAppointmentDto,
@@ -208,6 +208,49 @@ export class AppointmentsService {
     if (result.deletedCount === 0) {
       throw new NotFoundException(`Appointment with ID "${id}" not found`);
     }
-    return { message: `Appointment with ID "${id}" deleted successfully` };
+    return { message: `Appointment with ID "${id}" cancelled successfully` };
   }
+
+
+
+  //patient upcoming appiontments
+  // async getUpcomingAppointmentsForPatient(patientId: Types.ObjectId): Promise<any[]> {
+  //   try {
+  //     // Fetch appointments for the patient
+  //     const appointments = await this.appointmentModel
+  //       .find({ patient: patientId, appointmentDate: { $gte: new Date() } })
+  //       .populate({
+  //         path: 'doctor',
+  //         select: 'name clinicDetails', // Adjust field selection as needed
+  //       })
+  //       .populate('slot')
+  //       .exec();
+
+  //     if (!appointments || appointments.length === 0) {
+  //       throw new NotFoundException('No upcoming appointments found for this patient.');
+  //     }
+
+      // Process the appointments to include the required details
+  //     const appointmentsWithDetails = appointments.map((appointment) => {
+  //       const doctor = appointment.doctor as any; // Use populated doctor
+  //       const slot = appointment.slot as any; // Use populated slot (if available)
+
+  //       return {
+  //         appointmentId: appointment._id,
+  //         doctorName: doctor?.name,
+  //         clinicDetails: doctor?.clinicDetails,
+  //         slotTime: slot?.time,
+  //         appointmentDate: appointment.appointmentDate.toISOString().split('T')[0],
+  //       };
+  //     });
+
+  //     return appointmentsWithDetails;
+  //   } catch (error) {
+  //     throw new InternalServerErrorException(error.message);
+  //   }
+  // }
+
 }
+
+
+

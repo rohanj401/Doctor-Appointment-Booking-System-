@@ -1,5 +1,5 @@
 // create-report.dto.ts
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { Types } from 'mongoose';
 
 export class CreateReportDto {
@@ -11,9 +11,13 @@ export class CreateReportDto {
 
   @IsNotEmpty()
   @IsString()
-  report: string;
+  reportName: string;
 
   @IsNotEmpty()
+  @IsString()
+  uploadReport: string;
+
+  @IsOptional()
   @IsString()
   comment: string;
 }

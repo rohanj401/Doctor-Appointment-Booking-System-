@@ -1,17 +1,25 @@
-import { IsNotEmpty, IsMongoId, IsString, IsInt, Min, Max } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsMongoId,
+  IsString,
+  IsInt,
+  Min,
+  Max,
+} from 'class-validator';
+import { Types } from 'mongoose';
 
 export class CreateRatingDto {
   @IsNotEmpty()
   @IsMongoId()
-  doctor_id: string;
+  doctor: Types.ObjectId;
 
   @IsNotEmpty()
   @IsMongoId()
-  patient_id: string;
+  patient: Types.ObjectId;
 
   @IsNotEmpty()
   @IsInt()
-  @Min(1)  
+  @Min(1)
   @Max(5)
   rating: string;
 
@@ -19,5 +27,3 @@ export class CreateRatingDto {
   @IsString()
   comment: string;
 }
-
-

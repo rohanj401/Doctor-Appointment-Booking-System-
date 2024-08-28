@@ -10,12 +10,13 @@ export class Reports extends Document {
   @Prop({ type: Types.ObjectId, ref: 'Patient', required: true })
  patient_id: string;
 
-  @Prop({
-    required: true,
-  })
- report: string;
+ @Prop({required: true})
+reportName: string;
 
-  @Prop({ required: true })
+@Prop({required: true })
+ uploadReport: string;
+
+  @Prop({ required:false})
   comment: string;
 }
 
