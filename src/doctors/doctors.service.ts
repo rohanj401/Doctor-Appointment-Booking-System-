@@ -13,6 +13,9 @@ import { User } from 'src/schemas/User.schema';
 import { Availability } from 'src/schemas/Availability.schema';
 import { Slot } from 'src/schemas/Slot.schema';
 import { CancelSlotDto } from './dtos/cancel-slot.dto';
+import { Appointment } from 'src/schemas/Appointment.schema';
+import { Patient } from 'src/schemas/Patient.schema';
+import { MailerService } from '@nestjs-modules/mailer';
 
 @Injectable()
 export class DoctorsService {
@@ -24,6 +27,9 @@ export class DoctorsService {
     @InjectModel(Slot.name) private slotModel: Model<Slot>,
     @InjectModel(Availability.name)
     private availabilityModel: Model<Availability>,
+    @InjectModel(Appointment.name) private appointmentModel: Model<Appointment>,
+    @InjectModel(Patient.name) private patientModel: Model<Patient>,
+    private readonly mailerService: MailerService,
   ) {}
 
   async findDoctors(
@@ -340,6 +346,45 @@ export class DoctorsService {
       doctor.availability.splice(availabilityIndex, 1);
       await doctor.save();
 
+      const appointments = await this.appointmentModel
+        .find({
+          doctor: doctorId,
+          appointmentDate: isoDate,
+        })
+        .populate({
+          path: 'patient',
+          populate: {
+            path: 'user',
+            select: 'email',
+          },
+        })
+        .exec();
+
+      // Send notification emails to all patients with appointments on that date
+      for (const appointment of appointments) {
+        const patient = await this.patientModel.findById(
+          appointment.patient._id,
+        );
+        if (patient) {
+          const user = await this.userModel.findById(patient.user);
+          if (user) {
+            await this.mailerService.sendMail({
+              to: user.email,
+              subject: 'Appointment Cancellation Notice!',
+              html: `
+              <html>
+              <body>
+                  <h1>Dear, ${patient.name}!</h1>
+                  <p>All appointments for ${isoDate} have been cancelled.Please Contact Hospital management team to reschedule an appointmnet </p>
+                 
+                      </body>
+                      </html>
+            `,
+            });
+          }
+        }
+      }
+
       return { message: 'All slots canceled successfully and date removed' };
     } catch (error) {
       throw new Error(`Error canceling all slots: ${error.message}`);
@@ -386,6 +431,49 @@ export class DoctorsService {
 
     if (result.modifiedCount === 0) {
       throw new NotFoundException('Slot status was not updated');
+    } else if (result.modifiedCount > 0) {
+      // Fetch appointment details with populated patient and user
+      const appointment = await this.appointmentModel
+        .findOne({
+          doctor: doctorObjectId,
+          appointmentDate: isoDate,
+          slot: slotObjectId,
+        })
+        .populate({
+          path: 'patient',
+          populate: {
+            path: 'user',
+            select: 'email',
+          },
+        })
+        .exec();
+      const doctor = await this.doctorModel.findById(cancelSlotDto.doctorId);
+      if (!appointment) {
+        throw new NotFoundException('Appointment not found');
+      }
+
+      const patient = await this.patientModel.findById(appointment.patient._id);
+      if (!patient) {
+        throw new NotFoundException('Patient not found');
+      }
+
+      const user = await this.userModel.findById(patient.user);
+
+      if (user) {
+        await this.mailerService.sendMail({
+          to: user.email,
+          subject: 'Appointment Cancellation Notice!',
+          html: `
+          <html>
+          <body>
+              <h1>Dear, ${patient.name}!</h1>
+              <p>Your appointmnet for ${isoDate} with Dr. ${doctor.name} have been cancelled due to some reason .Please Contact Hospital management team to reschedule an appointmnet </p>
+             
+                  </body>
+                  </html>
+        `,
+        });
+      }
     }
   }
 }
