@@ -13,14 +13,17 @@ export class Article {
   @Prop({ required: true })
   content: string;
 
+  @Prop({ required: true })
+  image: string;
+
   @Prop({ required: true, type: Types.ObjectId, ref: Doctor.name })
   doctor: Types.ObjectId;
 
   @Prop({ required: true })
-  category: string; 
+  category: string;
 
   @Prop({ required: true })
-  subCategory: string; 
+  subCategory: string;
 
   @Prop({ default: Date.now })
   createdAt: Date;

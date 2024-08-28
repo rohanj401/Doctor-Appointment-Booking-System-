@@ -12,6 +12,10 @@ export class CreateArticleDto {
 
   @IsNotEmpty()
   @IsString()
+  image: string;
+
+  @IsNotEmpty()
+  @IsString()
   doctorId: string; // The ID of the doctor writing the article
 
   @IsNotEmpty()
