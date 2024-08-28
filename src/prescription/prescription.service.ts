@@ -12,6 +12,7 @@ import { Patient } from 'src/schemas/Patient.schema';
 import { Prescription } from 'src/schemas/Prescription.schema'; // Import the model directly
 import { Mode } from 'fs';
 import { Appointment } from 'src/schemas/Appointment.schema';
+import { Type } from 'class-transformer';
 
 @Injectable()
 export class PrescriptionService {
@@ -44,6 +45,15 @@ export class PrescriptionService {
     if (!patientExists) {
       throw new NotFoundException(`Patient with ID ${patientId} not found.`);
     }
+  }
+
+  async findByPatientId(pId: string) {
+    const patientId = new Types.ObjectId(pId);
+
+    const responce = this.prescriptionModel.find({ patientId }).exec();
+
+    console.log(JSON.stringify(responce));
+    return responce;
   }
 
   async savePrescription(prescriptionDto: {
