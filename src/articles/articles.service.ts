@@ -1,5 +1,9 @@
 // src/articles/articles.service.ts
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CreateArticleDto } from './dto/create-article.dto';
@@ -14,8 +18,10 @@ export class ArticlesService {
   ) {}
 
   async create(createArticleDto: CreateArticleDto): Promise<Article> {
-    const doctor = await this.doctorModel.findById(createArticleDto.doctorId).exec();
-    
+    const doctor = await this.doctorModel
+      .findById(createArticleDto.doctorId)
+      .exec();
+
     if (!doctor) {
       throw new ForbiddenException('Only existing doctors can write articles');
     }
@@ -28,20 +34,32 @@ export class ArticlesService {
     return createdArticle.save();
   }
 
-  async findAll(): Promise<Article[]> {
-    return this.articleModel.find().populate('doctor').exec();
+  async findAll(query: any = {}): Promise<Article[]> {
+    return this.articleModel
+      .find(query)
+      .populate('doctor')
+      .sort({ createdAt: -1 })
+      .exec();
   }
 
   async findOne(id: string): Promise<Article> {
-    const article = await this.articleModel.findById(id).populate('doctor').exec();
+    const article = await this.articleModel
+      .findById(id)
+      .populate('doctor')
+      .exec();
     if (!article) {
       throw new NotFoundException('Article not found');
     }
     return article;
   }
 
-  async update(id: string, updateArticleDto: Partial<CreateArticleDto>): Promise<Article> {
-    const updatedArticle = await this.articleModel.findByIdAndUpdate(id, updateArticleDto, { new: true }).exec();
+  async update(
+    id: string,
+    updateArticleDto: Partial<CreateArticleDto>,
+  ): Promise<Article> {
+    const updatedArticle = await this.articleModel
+      .findByIdAndUpdate(id, updateArticleDto, { new: true })
+      .exec();
     if (!updatedArticle) {
       throw new NotFoundException('Article not found');
     }

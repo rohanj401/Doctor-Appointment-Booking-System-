@@ -13,6 +13,7 @@ import {
 import { Slot, SlotSchema } from 'src/schemas/Slot.schema';
 import { Appointment, AppointmentSchema } from 'src/schemas/Appointment.schema';
 import { Patient, PatientSchema } from 'src/schemas/Patient.schema';
+import { Rating, RatingSchema } from 'src/schemas/Ratings.schema';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { Patient, PatientSchema } from 'src/schemas/Patient.schema';
       { name: Doctor.name, schema: DoctorSchema },
       { name: User.name, schema: UserSchema },
       { name: Availability.name, schema: AvailabilitySchema },
+      { name: Rating.name, schema: RatingSchema },
       { name: Slot.name, schema: SlotSchema },
       { name: Appointment.name, schema: AppointmentSchema },
       { name: Patient.name, schema: PatientSchema },

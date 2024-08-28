@@ -62,6 +62,8 @@ export class AppointmentsController {
     return appointment;
   }
 
+
+
   // @Get()
   // getAppointments() {
   //   return this.appointmentsService.getAppointments();
@@ -82,4 +84,18 @@ export class AppointmentsController {
     if (!isValid) throw new HttpException('Appointment Not Found', 404);
     return this.appointmentsService.deleteAppointment(id);
   }
+
+  //patient side 
+  // @Get('/upcomingAppointments')
+  // async getUpcomingAppointmentsForPatient(@Query('patientId') patientId: string) {
+  //   const isValid = Types.ObjectId.isValid(patientId);
+  //   if (!isValid) throw new HttpException('Invalid Patient ID', HttpStatus.BAD_REQUEST);
+    
+  //   try {
+  //     return await this.appointmentsService.getUpcomingAppointmentsForPatient(new Types.ObjectId(patientId));
+  //   } catch (error) {
+  //     throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+  //   }
+  // }
+  
 }

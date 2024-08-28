@@ -1,5 +1,14 @@
 // src/articles/articles.controller.ts
-import { Controller, Get, Post, Patch, Delete, Body, Param } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Body,
+  Param,
+  Query,
+} from '@nestjs/common';
 import { ArticlesService } from './articles.service';
 import { CreateArticleDto } from './dto/create-article.dto';
 
@@ -13,8 +22,9 @@ export class ArticlesController {
   }
 
   @Get()
-  async findAll() {
-    return this.articlesService.findAll();
+  async findAll(@Query('filter') filter: string) {
+    const query = filter ? JSON.parse(filter) : {};
+    return this.articlesService.findAll(query);
   }
 
   @Get(':id')
@@ -23,7 +33,10 @@ export class ArticlesController {
   }
 
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() updateArticleDto: Partial<CreateArticleDto>) {
+  async update(
+    @Param('id') id: string,
+    @Body() updateArticleDto: Partial<CreateArticleDto>,
+  ) {
     return this.articlesService.update(id, updateArticleDto);
   }
 
