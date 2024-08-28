@@ -9,6 +9,7 @@ import {
   Delete,
   Query,
   BadRequestException,
+  NotFoundException,
 } from '@nestjs/common';
 import { PrescriptionService } from './prescription.service';
 import { CreatePrescriptionDto } from './dtos/create-prescription.dto';
@@ -22,6 +23,19 @@ import { Medicine, Prescription } from 'src/schemas/Prescription.schema';
 @Controller('prescriptions')
 export class PrescriptionController {
   constructor(private readonly prescriptionService: PrescriptionService) {}
+  @Get('/byPatient')
+  async getPrescriptionsByPatientId(@Query('patientId') patientId: string) {
+    console.log(patientId);
+    if (!patientId) {
+      throw new BadRequestException('Patient ID is required');
+    }
+    const prescriptions =
+      await this.prescriptionService.findByPatientId(patientId);
+    if (!prescriptions || prescriptions.length === 0) {
+      throw new NotFoundException('No prescriptions found for this patient');
+    }
+    return prescriptions;
+  }
 
   @Post()
   create(@Body() createPrescriptionDto: CreatePrescriptionDto) {
@@ -63,6 +77,16 @@ export class PrescriptionController {
 
     // Save the prescription using the service
   }
+
+  // @Get('/byPatient')
+  // async getPrescriptionsByPatientId(@Query('patientId') patientId: string) {
+  //   const prescriptions =
+  //     await this.prescriptionService.findByPatientId(patientId);
+  //   if (!prescriptions || prescriptions.length === 0) {
+  //     throw new NotFoundException('No prescriptions found for this patient');
+  //   }
+  //   return prescriptions;
+  // }
   @Get()
   async findAll(@Query() query: any): Promise<Prescription[]> {
     return this.prescriptionService.findAll(query);

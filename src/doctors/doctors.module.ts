@@ -11,6 +11,8 @@ import {
   AvailabilitySchema,
 } from 'src/schemas/Availability.schema';
 import { Slot, SlotSchema } from 'src/schemas/Slot.schema';
+import { Appointment, AppointmentSchema } from 'src/schemas/Appointment.schema';
+import { Patient, PatientSchema } from 'src/schemas/Patient.schema';
 
 @Module({
   imports: [
@@ -19,6 +21,8 @@ import { Slot, SlotSchema } from 'src/schemas/Slot.schema';
       { name: User.name, schema: UserSchema },
       { name: Availability.name, schema: AvailabilitySchema },
       { name: Slot.name, schema: SlotSchema },
+      { name: Appointment.name, schema: AppointmentSchema },
+      { name: Patient.name, schema: PatientSchema },
     ]),
   ],
   controllers: [DoctorsController],
