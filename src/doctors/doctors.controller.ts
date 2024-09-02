@@ -27,7 +27,6 @@ import { CancelSlotDto } from './dtos/cancel-slot.dto';
 @Controller('doctors')
 export class DoctorsController {
   constructor(private doctorsService: DoctorsService) {}
-  constructor(private doctorsService: DoctorsService) {}
 
   @Post('/addAvailability')
   async addDoctorAvailability(
@@ -190,7 +189,6 @@ export class DoctorsController {
     @Query('specialty') specialty?: string,
     @Query('gender') gender?: string,
     @Query('radius') radius?: string, // Accept radius as string for easier parsing
-    @Query('location') location?: [number, number], // Accept location as string for easier parsing
     @Query('location') location?: [number, number], // Accept location as string for easier parsing
   ) {
     console.log('Searching doctors controller');
