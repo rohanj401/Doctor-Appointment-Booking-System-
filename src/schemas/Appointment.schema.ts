@@ -14,7 +14,7 @@ export class Appointment extends Document {
   @Prop({ required: true })
   appointmentDate: Date;
 
-  @Prop({ type: Types.ObjectId, ref: 'Slot', required: true })
+  @Prop({ required: true })
   slot: Types.ObjectId;
 
   @Prop({

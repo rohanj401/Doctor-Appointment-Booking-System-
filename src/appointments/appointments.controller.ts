@@ -54,6 +54,11 @@ export class AppointmentsController {
     return this.appointmentsService.getAppointments(query);
   }
 
+  // @Get('/getAppointmentsByDoctorId')
+  // async getAppointments(@Query('doctorId') doctorId: string): Promise<any[]> {
+  //   console.log(`Fetching appointments by doctorId : ${doctorId}`);
+  //   return this.appointmentsService.findAppointmentsByDoctorId(doctorId);
+  // }
   @Get('/getAppointmentsByDoctorId')
   async getAppointments(@Query('doctorId') doctorId: string): Promise<any[]> {
     console.log(`Fetching appointments by doctorId : ${doctorId}`);
