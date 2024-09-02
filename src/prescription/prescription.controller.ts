@@ -22,7 +22,7 @@ import { Medicine, Prescription } from 'src/schemas/Prescription.schema';
 
 @Controller('prescriptions')
 export class PrescriptionController {
-  constructor(private readonly prescriptionService: PrescriptionService) {}
+  constructor(private readonly prescriptionService: PrescriptionService) { }
   @Get('/byPatient')
   async getPrescriptionsByPatientId(@Query('patientId') patientId: string) {
     console.log(patientId);
@@ -108,4 +108,18 @@ export class PrescriptionController {
   remove(@Param('id') id: string) {
     return this.prescriptionService.remove(id);
   }
+
+
+  // @Get('findPrescriptionByDoctorId/:id')
+  // async findPrescriptionByDoctorId(@Param('id') id: string) {
+  //   console.log('from doctor controller', id);
+  //   return this.prescriptionService.findPrescriptionByDoctorId(id);
+  // }
+
+  @Get('findPrescriptionByDoctorId/:id')
+  async findPrescriptionByDoctorId(@Param('id') id: string) {
+    console.log('from doctor controller', id);
+    return this.prescriptionService.findPrescriptionByDoctorId(id);
+  }
+
 }

@@ -14,6 +14,7 @@ import { Slot, SlotSchema } from 'src/schemas/Slot.schema';
 import { Appointment, AppointmentSchema } from 'src/schemas/Appointment.schema';
 import { Patient, PatientSchema } from 'src/schemas/Patient.schema';
 import { Rating, RatingSchema } from 'src/schemas/Ratings.schema';
+import { Prescription, PrescriptionSchema } from 'src/schemas/Prescription.schema';
 
 @Module({
   imports: [
@@ -25,9 +26,10 @@ import { Rating, RatingSchema } from 'src/schemas/Ratings.schema';
       { name: Slot.name, schema: SlotSchema },
       { name: Appointment.name, schema: AppointmentSchema },
       { name: Patient.name, schema: PatientSchema },
+      { name: Prescription.name, schema: PrescriptionSchema },
     ]),
   ],
   controllers: [DoctorsController],
   providers: [DoctorsService, CloudinaryService],
 })
-export class DoctorsModule {}
+export class DoctorsModule { }
