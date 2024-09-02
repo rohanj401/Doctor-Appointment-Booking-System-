@@ -12,6 +12,7 @@ import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 import { Doctor } from 'src/schemas/doctor.schema';
 import { Patient } from 'src/schemas/Patient.schema';
 import { Slot } from 'src/schemas/Slot.schema';
+import { time } from 'console';
 
 @Injectable()
 export class AppointmentsService {
@@ -175,11 +176,11 @@ export class AppointmentsService {
     if (query.patient) {
       query.patient = new Types.ObjectId(query.patient);
     }
+    console.log(query);
     return this.appointmentModel
       .find(query)
-      .populate('doctor') // Only return selected fields from the doctor document
+      .populate('doctor')
       .populate('patient')
-      .populate('slot') // Only return selected fields from the patient document
       .exec();
   }
 

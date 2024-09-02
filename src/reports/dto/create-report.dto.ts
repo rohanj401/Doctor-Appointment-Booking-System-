@@ -4,10 +4,7 @@ import { Types } from 'mongoose';
 
 export class CreateReportDto {
   @IsNotEmpty()
-  doctor_id: Types.ObjectId;
-
-  @IsNotEmpty()
-  patient_id: Types.ObjectId;
+  patient: Types.ObjectId;
 
   @IsNotEmpty()
   @IsString()
@@ -17,7 +14,10 @@ export class CreateReportDto {
   @IsString()
   uploadReport: string;
 
-  @IsOptional()
+  @IsNotEmpty()
   @IsString()
-  comment: string;
+  type: string;
+
+  @IsOptional()
+  date: Date;
 }

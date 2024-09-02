@@ -107,6 +107,17 @@ export class DoctorsService {
     return doctor;
   }
 
+  async patchDoctor(id: string, updateDoctorDto: UpdateDoctorDto) {
+    console.log('getting doctor by userId');
+    const doctor = await this.doctorModel.findOne({ _id: id }).exec();
+
+    if (!doctor) {
+      throw new NotFoundException(`Doctor with user ID ${id} not found`);
+    }
+
+    return this.doctorModel.findByIdAndUpdate(id, updateDoctorDto);
+  }
+
   async findNearbyDoctors(data: any) {
     console.log(data.userLatitude);
     console.log(data.userLongitude);
@@ -182,21 +193,23 @@ export class DoctorsService {
       console.log('Doctors found:', response);
       const doctorsWithRatings: (Doctor & { avgRating: number })[] = [];
 
-    for (const doctor of response) {
-      const ratings = await this.ratingModel
-        .find({ doctor: doctor._id })
-        .exec();
-      console.log('ratings: ' + ratings);
-      const avgRating =
-        ratings.length > 0
-          ? ratings.reduce((acc, rating) => acc + rating.rating, 0) /
-            ratings.length
-          : 0;
-      const doctorObject = doctor.toObject() as Doctor & { avgRating: number };
-      doctorObject.avgRating = avgRating;
+      for (const doctor of response) {
+        const ratings = await this.ratingModel
+          .find({ doctor: doctor._id })
+          .exec();
+        console.log('ratings: ' + ratings);
+        const avgRating =
+          ratings.length > 0
+            ? ratings.reduce((acc, rating) => acc + rating.rating, 0) /
+              ratings.length
+            : 0;
+        const doctorObject = doctor.toObject() as Doctor & {
+          avgRating: number;
+        };
+        doctorObject.avgRating = avgRating;
 
-      doctorsWithRatings.push(doctorObject);
-    }
+        doctorsWithRatings.push(doctorObject);
+      }
       return doctorsWithRatings;
     } catch (error) {
       console.error('Error fetching doctors:', error);
