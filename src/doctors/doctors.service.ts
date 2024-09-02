@@ -182,21 +182,23 @@ export class DoctorsService {
       console.log('Doctors found:', response);
       const doctorsWithRatings: (Doctor & { avgRating: number })[] = [];
 
-    for (const doctor of response) {
-      const ratings = await this.ratingModel
-        .find({ doctor: doctor._id })
-        .exec();
-      console.log('ratings: ' + ratings);
-      const avgRating =
-        ratings.length > 0
-          ? ratings.reduce((acc, rating) => acc + rating.rating, 0) /
-            ratings.length
-          : 0;
-      const doctorObject = doctor.toObject() as Doctor & { avgRating: number };
-      doctorObject.avgRating = avgRating;
+      for (const doctor of response) {
+        const ratings = await this.ratingModel
+          .find({ doctor: doctor._id })
+          .exec();
+        console.log('ratings: ' + ratings);
+        const avgRating =
+          ratings.length > 0
+            ? ratings.reduce((acc, rating) => acc + rating.rating, 0) /
+              ratings.length
+            : 0;
+        const doctorObject = doctor.toObject() as Doctor & {
+          avgRating: number;
+        };
+        doctorObject.avgRating = avgRating;
 
-      doctorsWithRatings.push(doctorObject);
-    }
+        doctorsWithRatings.push(doctorObject);
+      }
       return doctorsWithRatings;
     } catch (error) {
       console.error('Error fetching doctors:', error);
@@ -360,8 +362,6 @@ export class DoctorsService {
     return (hours || 0) * 60 + (minutes || 0);
   }
 
-  //Schedule Management Cancelling Appointments
-
   async cancelAllSlots(doctorId: string, date: Date): Promise<any> {
     try {
       // Convert date to YYYY-MM-DD format
@@ -401,18 +401,23 @@ export class DoctorsService {
         })
         .exec();
 
+      if (!appointments) {
+        console.log('No appointment found for the slot');
+        return; // Early return if no appointment exists
+      }
       // Send notification emails to all patients with appointments on that date
-      for (const appointment of appointments) {
-        const patient = await this.patientModel.findById(
-          appointment.patient._id,
-        );
-        if (patient) {
-          const user = await this.userModel.findById(patient.user);
-          if (user) {
-            await this.mailerService.sendMail({
-              to: user.email,
-              subject: 'Appointment Cancellation Notice!',
-              html: `
+      else {
+        for (const appointment of appointments) {
+          const patient = await this.patientModel.findById(
+            appointment.patient._id,
+          );
+          if (patient) {
+            const user = await this.userModel.findById(patient.user);
+            if (user) {
+              await this.mailerService.sendMail({
+                to: user.email,
+                subject: 'Appointment Cancellation Notice!',
+                html: `
               <html>
               <body>
                   <h1>Dear, ${patient.name}!</h1>
@@ -421,16 +426,18 @@ export class DoctorsService {
                       </body>
                       </html>
             `,
-            });
+              });
+            }
           }
         }
-      }
 
-      return { message: 'All slots canceled successfully and date removed' };
+        return { message: 'All slots canceled successfully and date removed' };
+      }
     } catch (error) {
       throw new Error(`Error canceling all slots: ${error.message}`);
     }
   }
+
   async cancelSlot(cancelSlotDto: CancelSlotDto): Promise<void> {
     const { doctorId, date, slotId } = cancelSlotDto;
     console.log('Cancelling a slot');
@@ -467,7 +474,7 @@ export class DoctorsService {
     console.log(`Modified Count: ${result.modifiedCount}`);
 
     if (result.matchedCount === 0) {
-      throw new NotFoundException('Slot not found');
+      throw new NotFoundException('Slot or Doctor not found');
     }
 
     if (result.modifiedCount === 0) {
@@ -488,9 +495,15 @@ export class DoctorsService {
           },
         })
         .exec();
-      const doctor = await this.doctorModel.findById(cancelSlotDto.doctorId);
+
       if (!appointment) {
-        throw new NotFoundException('Appointment not found');
+        console.log('No appointment found for the slot');
+        return; // Early return if no appointment exists
+      }
+
+      const doctor = await this.doctorModel.findById(cancelSlotDto.doctorId);
+      if (!doctor) {
+        throw new NotFoundException('Doctor not found');
       }
 
       const patient = await this.patientModel.findById(appointment.patient._id);
@@ -505,14 +518,13 @@ export class DoctorsService {
           to: user.email,
           subject: 'Appointment Cancellation Notice!',
           html: `
-          <html>
-          <body>
-              <h1>Dear, ${patient.name}!</h1>
-              <p>Your appointmnet for ${isoDate} with Dr. ${doctor.name} have been cancelled due to some reason .Please Contact Hospital management team to reschedule an appointmnet </p>
-             
-                  </body>
-                  </html>
-        `,
+            <html>
+            <body>
+                <h1>Dear ${patient.name},</h1>
+                <p>Your appointment for ${isoDate} with Dr. ${doctor.name} has been cancelled. Please contact the hospital management team to reschedule.</p>
+            </body>
+            </html>
+          `,
         });
       }
     }

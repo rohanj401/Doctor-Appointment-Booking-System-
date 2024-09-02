@@ -26,7 +26,7 @@ import { CancelSlotDto } from './dtos/cancel-slot.dto';
 
 @Controller('doctors')
 export class DoctorsController {
-  constructor(private doctorsService: DoctorsService) { }
+  constructor(private doctorsService: DoctorsService) {}
 
   @Post('/addAvailability')
   async addDoctorAvailability(
@@ -41,6 +41,12 @@ export class DoctorsController {
   @Post(':id/verify')
   async verifyDoctor(@Param('id') id: string) {
     return this.doctorsService.verifyDoctor(id);
+  }
+
+  @Patch('/cancelSlot')
+  async cancelSlot(@Body() cancelSlotDto: CancelSlotDto): Promise<void> {
+    console.log('Cancelling slot ');
+    return await this.doctorsService.cancelSlot(cancelSlotDto);
   }
 
   @Patch('/cancelAllSlots')
@@ -75,10 +81,6 @@ export class DoctorsController {
     }
   }
 
-  @Patch('/cancelSlot')
-  async cancelSlot(@Body() cancelSlotDto: CancelSlotDto): Promise<void> {
-    return await this.doctorsService.cancelSlot(cancelSlotDto);
-  }
   @Get('/fetchDoctorByUserId/:id')
   async fetchDoctorByUserId(@Param('id') id: string) {
     try {
@@ -157,7 +159,6 @@ export class DoctorsController {
     return this.doctorsService.deleteDoctor(id);
   }
 
-
   //get doctors by city, state, speciality
   // @Get('search')
   // async searchDoctors(
@@ -172,7 +173,6 @@ export class DoctorsController {
   //   return this.doctorsService.searchDoctors(state, city, specialty, radius, location);
   // }
 
-
   @Get('search')
   async searchDoctors(
     @Query('state') state: string,
@@ -180,10 +180,18 @@ export class DoctorsController {
     @Query('specialty') specialty?: string,
     @Query('gender') gender?: string,
     @Query('radius') radius?: string, // Accept radius as string for easier parsing
-    @Query('location') location?: [number, number] // Accept location as string for easier parsing
+    @Query('location') location?: [number, number], // Accept location as string for easier parsing
   ) {
     console.log('Searching doctors controller');
-    console.log('from controller', state, city, specialty, gender, radius, location);
+    console.log(
+      'from controller',
+      state,
+      city,
+      specialty,
+      gender,
+      radius,
+      location,
+    );
 
     // Validate and parse radius
     const radiusInKm = radius ? parseFloat(radius) : undefined;
@@ -191,8 +199,13 @@ export class DoctorsController {
       throw new BadRequestException('Invalid radius');
     }
 
-
-    return this.doctorsService.searchDoctors(state, city, specialty, gender, radiusInKm, location);
+    return this.doctorsService.searchDoctors(
+      state,
+      city,
+      specialty,
+      gender,
+      radiusInKm,
+      location,
+    );
   }
 }
-
