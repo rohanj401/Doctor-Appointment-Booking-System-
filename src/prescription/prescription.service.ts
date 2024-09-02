@@ -23,7 +23,7 @@ export class PrescriptionService {
     @InjectModel(Patient.name) private readonly patientModel: Model<Patient>,
     @InjectModel(Appointment.name)
     private readonly appointmentModel: Model<Appointment>,
-  ) {}
+  ) { }
 
   private async validateDoctorAndPatient(
     doctorId: string,
@@ -165,4 +165,86 @@ export class PrescriptionService {
     }
     return result;
   }
+
+
+
+
+  //get prescription where doctor id is equal to doctor id
+
+
+  // async findPrescriptionByDoctorId(dId: string) {
+  //   try {
+  //     console.log("This is From Doctor Service id", dId);
+  //     const doctorId = new Types.ObjectId(dId);
+  //     const responce = await this.prescriptionModel.find({ doctorId }).exec();
+  //     console.log("This is From Doctor Service", JSON.stringify(responce));
+  //     return responce;
+  //   } catch (error) {
+  //     throw new Error(`Error finding prescription for Doctor: ${error.message}`);
+  //   }
+  // }
+
+  // async findPrescriptionByDoctorId(dId: string) {
+  //   try {
+  //     const doctorId = new Types.ObjectId(dId);
+  //     const responce = this.prescriptionModel.find({ doctorId }).exec();
+  //     console.log(JSON.stringify(responce));
+
+  //     return responce;
+  //   } catch (error) {
+  //     throw new Error(`Error finding prescription for Doctor: ${error.message}`);
+  //   }
+  // }
+
+  // async findPrescriptionByDoctorId(dId: string) {
+  //   try {
+  //     const doctorId = new Types.ObjectId(dId);
+  //     const response = await this.prescriptionModel
+  //       .find({ doctorId })
+  //       .select("patientId doctorId prescriptionId patientName") // Project only patientId, doctorId, and prescriptionId
+  //       .exec();
+
+  //     console.log(JSON.stringify(response));
+  //     return response;
+  //   } catch (error) {
+  //     throw new Error(`Error finding prescription for Doctor: ${error.message}`);
+  //   }
+  // }
+
+  async findPrescriptionByDoctorId(dId: string) {
+    try {
+      const doctorId = new Types.ObjectId(dId);
+      const response = await this.prescriptionModel.aggregate([
+        { $match: { doctorId } },
+        {
+          $group: {
+            _id: "$patientId",
+            doctorId: { $first: "$doctorId" },
+            prescriptionId: { $first: "$_id" }, // Assuming _id is the prescriptionId
+            patientId: { $first: "$patientId" },
+            patientName: { $first: "$patientName" }, // Add other fields as needed
+
+          },
+        },
+        {
+          $project: {
+            _id: 0, // Exclude the _id field created by $group
+            patientId: 1,
+            prescriptionId: 1,
+            patientName: 1,
+          },
+        },
+      ]);
+
+      console.log(JSON.stringify(response));
+      return response;
+    } catch (error) {
+      throw new Error(`Error finding prescription for Doctor: ${error.message}`);
+    }
+  }
+
+
+
+
 }
+
