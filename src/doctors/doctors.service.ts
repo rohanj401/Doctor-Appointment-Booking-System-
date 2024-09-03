@@ -18,6 +18,7 @@ import { Appointment } from 'src/schemas/Appointment.schema';
 import { Patient } from 'src/schemas/Patient.schema';
 import { MailerService } from '@nestjs-modules/mailer';
 import { Rating } from 'src/schemas/Ratings.schema';
+import { Prescription } from 'src/schemas/Prescription.schema';
 
 @Injectable()
 export class DoctorsService {
@@ -27,6 +28,8 @@ export class DoctorsService {
     @InjectModel(Rating.name) private ratingModel: Model<Rating>,
     @InjectModel(User.name) private userModel: Model<User>,
     @InjectModel(Slot.name) private slotModel: Model<Slot>,
+    @InjectModel(Prescription.name)
+    private prescriptionModel: Model<Prescription>,
     @InjectModel(Availability.name)
     private availabilityModel: Model<Availability>,
     @InjectModel(Appointment.name) private appointmentModel: Model<Appointment>,
@@ -105,6 +108,17 @@ export class DoctorsService {
     }
 
     return doctor;
+  }
+
+  async patchDoctor(id: string, updateDoctorDto: UpdateDoctorDto) {
+    console.log('getting doctor by userId');
+    const doctor = await this.doctorModel.findOne({ _id: id }).exec();
+
+    if (!doctor) {
+      throw new NotFoundException(`Doctor with user ID ${id} not found`);
+    }
+
+    return this.doctorModel.findByIdAndUpdate(id, updateDoctorDto);
   }
 
   async findNearbyDoctors(data: any) {
