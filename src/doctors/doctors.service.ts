@@ -19,6 +19,7 @@ import { Patient } from 'src/schemas/Patient.schema';
 import { MailerService } from '@nestjs-modules/mailer';
 import { Rating } from 'src/schemas/Ratings.schema';
 import { Prescription } from 'src/schemas/Prescription.schema';
+// import { zonedTimeToUtc } from 'date-fns-tz';
 
 @Injectable()
 export class DoctorsService {
@@ -376,88 +377,12 @@ export class DoctorsService {
     return (hours || 0) * 60 + (minutes || 0);
   }
 
-  async cancelAllSlots(doctorId: string, date: Date): Promise<any> {
-    try {
-      // Convert date to YYYY-MM-DD format
-      const isoDate = date.toISOString().split('T')[0];
-
-      // Find the doctor
-      const doctor = await this.doctorModel.findById(doctorId);
-
-      if (!doctor) {
-        return { message: 'Doctor not found' };
-      }
-
-      // Find the index of the availability entry for the given date
-      const availabilityIndex = doctor.availability.findIndex(
-        (avail) => avail.date === isoDate,
-      );
-
-      if (availabilityIndex === -1) {
-        return { message: 'No availability found for the given date' };
-      }
-
-      // Remove the availability entry from the array
-      doctor.availability.splice(availabilityIndex, 1);
-      await doctor.save();
-
-      const appointments = await this.appointmentModel
-        .find({
-          doctor: doctorId,
-          appointmentDate: isoDate,
-        })
-        .populate({
-          path: 'patient',
-          populate: {
-            path: 'user',
-            select: 'email',
-          },
-        })
-        .exec();
-
-      if (!appointments) {
-        console.log('No appointment found for the slot');
-        return; // Early return if no appointment exists
-      }
-      // Send notification emails to all patients with appointments on that date
-      else {
-        for (const appointment of appointments) {
-          const patient = await this.patientModel.findById(
-            appointment.patient._id,
-          );
-          if (patient) {
-            const user = await this.userModel.findById(patient.user);
-            if (user) {
-              await this.mailerService.sendMail({
-                to: user.email,
-                subject: 'Appointment Cancellation Notice!',
-                html: `
-              <html>
-              <body>
-                  <h1>Dear, ${patient.name}!</h1>
-                  <p>All appointments for ${isoDate} have been cancelled.Please Contact Hospital management team to reschedule an appointmnet </p>
-                 
-                      </body>
-                      </html>
-            `,
-              });
-            }
-          }
-        }
-
-        return { message: 'All slots canceled successfully and date removed' };
-      }
-    } catch (error) {
-      throw new Error(`Error canceling all slots: ${error.message}`);
-    }
-  }
-
   async cancelSlot(cancelSlotDto: CancelSlotDto): Promise<void> {
     const { doctorId, date, slotId } = cancelSlotDto;
-    console.log('Cancelling a slot');
+    console.log(`Cancelling a slot on date ${date}`);
 
     // Convert date to ISO string format for MongoDB query
-    const isoDate = new Date(date).toISOString().split('T')[0]; // Use only the date part
+    const isoDate = new Date(date).toISOString().split('T')[0];
     console.log(`Doctor ID: ${doctorId}, Date: ${isoDate}, Slot ID: ${slotId}`);
 
     // Convert IDs to ObjectId
@@ -467,20 +392,18 @@ export class DoctorsService {
     // Update the slot's status to 'cancelled' in the specified date
     const result = await this.doctorModel.updateOne(
       {
-        _id: doctorObjectId, // Doctor ID
-        'availability.date': isoDate, // Date in availability
-        'availability.slots._id': slotObjectId, // Slot ID
+        _id: doctorObjectId,
+        'availability.date': isoDate,
+        'availability.slots._id': slotObjectId,
       },
       {
         $set: {
-          'availability.$.slots.$[slot].status': 'cancelled', // Set status to 'cancelled'
+          'availability.$.slots.$[slot].status': 'cancelled',
         },
       },
       {
-        arrayFilters: [
-          { 'slot._id': slotObjectId }, // Filter for the correct slot
-        ],
-        multi: true, // Apply to all matching documents
+        arrayFilters: [{ 'slot._id': slotObjectId }],
+        multi: true,
       },
     );
 
@@ -525,22 +448,145 @@ export class DoctorsService {
         throw new NotFoundException('Patient not found');
       }
 
-      const user = await this.userModel.findById(patient.user);
+      // Send the email asynchronously after the slot has been cancelled
+      this.sendCancellationEmail(doctor, patient, isoDate).catch((err) =>
+        console.error('Error sending cancellation email:', err),
+      );
+    }
+  }
 
-      if (user) {
-        await this.mailerService.sendMail({
-          to: user.email,
-          subject: 'Appointment Cancellation Notice!',
-          html: `
-            <html>
+  private async sendCancellationEmail(
+    doctor: any,
+    patient: any,
+    isoDate: string,
+  ): Promise<void> {
+    const user = await this.userModel.findById(patient.user);
+    if (user) {
+      await this.mailerService.sendMail({
+        to: user.email,
+        subject: 'Appointment Cancellation Notice!',
+        html: `
+          <html>
             <body>
-                <h1>Dear ${patient.name},</h1>
-                <p>Your appointment for ${isoDate} with Dr. ${doctor.name} has been cancelled. Please contact the hospital management team to reschedule.</p>
+              <h1>Dear ${patient.name},</h1>
+              <p>
+                We regret to inform you that your appointment scheduled for ${isoDate} with Dr. ${doctor.name} has been cancelled due to unforeseen circumstances.
+              </p>
+              <p>
+                We apologize for any inconvenience this may cause. Please contact the hospital management team to reschedule your appointment at your earliest convenience.
+              </p>
+              <p>
+                Thank you for your understanding.
+              </p>
+              <p>
+                Best regards,<br />
+                The Hospital Management Team
+              </p>
             </body>
-            </html>
-          `,
-        });
+          </html>
+        `,
+      });
+    }
+  }
+
+  async cancelAllSlots(doctorId: string, date: Date): Promise<any> {
+    try {
+      const isoDate = date.toISOString().split('T')[0];
+      const isoDate1 = date.toISOString();
+
+      console.log('Cancelling all slots');
+
+      const doctor = await this.doctorModel.findById(doctorId);
+      if (!doctor) {
+        return { message: 'Doctor not found' };
       }
+
+      const availabilityIndex = doctor.availability.findIndex(
+        (avail) => avail.date === date.toISOString().split('T')[0],
+      );
+
+      if (availabilityIndex === -1) {
+        return { message: 'No availability found for the given date' };
+      }
+
+      doctor.availability.splice(availabilityIndex, 1);
+      await doctor.save();
+      console.log(
+        `Availability removed for date: ${date.toISOString().split('T')[0]}`,
+      );
+
+      const appointments = await this.appointmentModel
+        .find({
+          doctor: new Types.ObjectId(doctorId),
+          appointmentDate: isoDate,
+        })
+        .populate({
+          path: 'patient',
+          populate: {
+            path: 'user',
+          },
+        })
+        .exec();
+
+      console.log(`Total Appointments Found: ${appointments.length}`);
+      console.log('Appointments:', appointments);
+
+      if (appointments.length === 0) {
+        console.log('No appointments found for the slot');
+        return { message: 'No appointments found for the given date' };
+      }
+
+      // Send response immediately
+      const response = {
+        message: 'All slots canceled successfully and date removed',
+      };
+
+      // Send notification emails to all patients with appointments on that date
+      this.sendCancellationEmails(appointments, doctor);
+
+      return response;
+    } catch (error) {
+      throw new Error(`Error canceling all slots: ${error.message}`);
+    }
+  }
+
+  // Method to send cancellation emails in the background
+  private async sendCancellationEmails(appointments: any[], doctor: any) {
+    try {
+      for (const appointment of appointments) {
+        const patient = appointment.patient;
+        if (patient) {
+          const user = patient.user;
+          if (user) {
+            await this.mailerService.sendMail({
+              to: user.email,
+              subject: 'Appointment Cancellation Notice!',
+              html: `
+                <html>
+                  <body>
+                    <h1>Dear ${patient.name},</h1>
+                    <p>
+                      We regret to inform you that all appointments scheduled for ${appointment.appointmentDate.toISOString().split('T')[0]} with Dr. ${doctor.name} have been cancelled due to unforeseen circumstances.
+                    </p>
+                    <p>
+                      We apologize for the inconvenience this may cause. Please contact the hospital management team to reschedule your appointment at your earliest convenience.
+                    </p>
+                    <p>
+                      Thank you for your understanding.
+                    </p>
+                    <p>
+                      Best regards,<br />
+                      The Hospital Management Team
+                    </p>
+                  </body>
+                </html>
+              `,
+            });
+          }
+        }
+      }
+    } catch (error) {
+      console.error(`Error sending cancellation emails: ${error.message}`);
     }
   }
 }
