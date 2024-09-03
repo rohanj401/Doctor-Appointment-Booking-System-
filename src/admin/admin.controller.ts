@@ -1,6 +1,7 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Param, UseGuards } from '@nestjs/common';
 import { get } from 'http';
 import { AdminService } from './admin.service';
+import { AuthGuard } from 'src/auth/auth.gaurd';
 
 @Controller('admin')
 export class AdminController {
@@ -13,10 +14,6 @@ export class AdminController {
         return this.adminService.getAdmins();
     }
 
-    // @Get('/fetchadminByUserId/:id')
-    // async fetchPatientByUserId(@Param('id') id: string) {
-    //     return this.adminService.fetchAdminByUserId(id);
-    // }
 
 
 
