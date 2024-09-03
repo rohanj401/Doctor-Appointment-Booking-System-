@@ -167,50 +167,6 @@ export class PrescriptionService {
   }
 
 
-
-
-  //get prescription where doctor id is equal to doctor id
-
-
-  // async findPrescriptionByDoctorId(dId: string) {
-  //   try {
-  //     console.log("This is From Doctor Service id", dId);
-  //     const doctorId = new Types.ObjectId(dId);
-  //     const responce = await this.prescriptionModel.find({ doctorId }).exec();
-  //     console.log("This is From Doctor Service", JSON.stringify(responce));
-  //     return responce;
-  //   } catch (error) {
-  //     throw new Error(`Error finding prescription for Doctor: ${error.message}`);
-  //   }
-  // }
-
-  // async findPrescriptionByDoctorId(dId: string) {
-  //   try {
-  //     const doctorId = new Types.ObjectId(dId);
-  //     const responce = this.prescriptionModel.find({ doctorId }).exec();
-  //     console.log(JSON.stringify(responce));
-
-  //     return responce;
-  //   } catch (error) {
-  //     throw new Error(`Error finding prescription for Doctor: ${error.message}`);
-  //   }
-  // }
-
-  // async findPrescriptionByDoctorId(dId: string) {
-  //   try {
-  //     const doctorId = new Types.ObjectId(dId);
-  //     const response = await this.prescriptionModel
-  //       .find({ doctorId })
-  //       .select("patientId doctorId prescriptionId patientName") // Project only patientId, doctorId, and prescriptionId
-  //       .exec();
-
-  //     console.log(JSON.stringify(response));
-  //     return response;
-  //   } catch (error) {
-  //     throw new Error(`Error finding prescription for Doctor: ${error.message}`);
-  //   }
-  // }
-
   async findPrescriptionByDoctorId(dId: string) {
     try {
       const doctorId = new Types.ObjectId(dId);
@@ -244,7 +200,22 @@ export class PrescriptionService {
   }
 
 
+  async findPrescriptionByPatientIdAndDoctorId(pId: string, dId: string) {
+    try {
+      const patientId = new Types.ObjectId(pId);
+      const doctorId = new Types.ObjectId(dId);
 
+      // Sort by appointmentDate in descending order
+      const response = await this.prescriptionModel.find({
+        patientId,
+        doctorId,
+      }).sort({ appointmentDate: -1 }).exec();
 
+      return response;
+    } catch (error) {
+      throw new Error(`Error finding prescription for Patient: ${error.message}`);
+    }
+
+  }
 }
 
