@@ -4,20 +4,20 @@ import { Document } from 'mongoose';
 
 @Schema({ timestamps: true })
 export class Reports extends Document {
-  @Prop({ type: Types.ObjectId, ref: 'Doctor', required: true })
- doctor_id: string;
-  
   @Prop({ type: Types.ObjectId, ref: 'Patient', required: true })
- patient_id: string;
+  patient: Types.ObjectId;
 
- @Prop({required: true})
-reportName: string;
+  @Prop({ required: true })
+  reportName: string;
 
-@Prop({required: true })
- uploadReport: string;
+  @Prop({ required: true })
+  uploadReport: string;
 
-  @Prop({ required:false})
-  comment: string;
+  @Prop({ required: true })
+  type: string;
+
+  @Prop({ required: false })
+  date: Date;
 }
 
 export const ReportsSchema = SchemaFactory.createForClass(Reports);

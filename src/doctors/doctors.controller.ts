@@ -133,6 +133,15 @@ export class DoctorsController {
     return this.doctorsService.getDoctors();
   }
 
+  @Patch(':id')
+  updateDoctor(
+    @Param('id') id: string,
+    @Body() updateDoctorDto: UpdateDoctorDto,
+  ) {
+    const isValid = mongoose.Types.ObjectId.isValid(id);
+    if (!isValid) throw new HttpException('User Not Found', 404);
+    return this.doctorsService.patchDoctor(id, updateDoctorDto);
+  }
   // @Patch(':id')
   // @UseInterceptors(AnyFilesInterceptor())
   // async updateDoctor(
@@ -192,6 +201,15 @@ export class DoctorsController {
       radius,
       location,
     );
+    console.log(
+      'from controller',
+      state,
+      city,
+      specialty,
+      gender,
+      radius,
+      location,
+    );
 
     // Validate and parse radius
     const radiusInKm = radius ? parseFloat(radius) : undefined;
@@ -207,9 +225,13 @@ export class DoctorsController {
       radiusInKm,
       location,
     );
+    return this.doctorsService.searchDoctors(
+      state,
+      city,
+      specialty,
+      gender,
+      radiusInKm,
+      location,
+    );
   }
-
-
-
-
 }

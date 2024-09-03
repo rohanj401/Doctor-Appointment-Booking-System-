@@ -50,7 +50,6 @@ export class AppointmentsController {
   @Get()
   async getAllAppointments(@Query('filter') filter: string): Promise<any[]> {
     const query = filter ? JSON.parse(filter) : {};
-    console.log(query);
     return this.appointmentsService.getAppointments(query);
   }
 

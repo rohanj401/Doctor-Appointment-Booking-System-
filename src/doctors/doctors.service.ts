@@ -28,13 +28,14 @@ export class DoctorsService {
     @InjectModel(Rating.name) private ratingModel: Model<Rating>,
     @InjectModel(User.name) private userModel: Model<User>,
     @InjectModel(Slot.name) private slotModel: Model<Slot>,
-    @InjectModel(Prescription.name) private prescriptionModel: Model<Prescription>,
+    @InjectModel(Prescription.name)
+    private prescriptionModel: Model<Prescription>,
     @InjectModel(Availability.name)
     private availabilityModel: Model<Availability>,
     @InjectModel(Appointment.name) private appointmentModel: Model<Appointment>,
     @InjectModel(Patient.name) private patientModel: Model<Patient>,
     private readonly mailerService: MailerService,
-  ) { }
+  ) {}
 
   async findDoctors(
     status: 'all' | 'verified' | 'unverified',
@@ -77,7 +78,7 @@ export class DoctorsService {
       const avgRating =
         ratings.length > 0
           ? ratings.reduce((acc, rating) => acc + rating.rating, 0) /
-          ratings.length
+            ratings.length
           : 0;
       const doctorObject = doctor.toObject() as Doctor & { avgRating: number };
       doctorObject.avgRating = avgRating;
@@ -107,6 +108,17 @@ export class DoctorsService {
     }
 
     return doctor;
+  }
+
+  async patchDoctor(id: string, updateDoctorDto: UpdateDoctorDto) {
+    console.log('getting doctor by userId');
+    const doctor = await this.doctorModel.findOne({ _id: id }).exec();
+
+    if (!doctor) {
+      throw new NotFoundException(`Doctor with user ID ${id} not found`);
+    }
+
+    return this.doctorModel.findByIdAndUpdate(id, updateDoctorDto);
   }
 
   async findNearbyDoctors(data: any) {
@@ -192,7 +204,7 @@ export class DoctorsService {
         const avgRating =
           ratings.length > 0
             ? ratings.reduce((acc, rating) => acc + rating.rating, 0) /
-            ratings.length
+              ratings.length
             : 0;
         const doctorObject = doctor.toObject() as Doctor & {
           avgRating: number;
@@ -532,7 +544,3 @@ export class DoctorsService {
     }
   }
 }
-
-
-
-
