@@ -23,6 +23,21 @@ import { Medicine, Prescription } from 'src/schemas/Prescription.schema';
 @Controller('prescriptions')
 export class PrescriptionController {
   constructor(private readonly prescriptionService: PrescriptionService) { }
+
+  @Get('/findPrescriptionByPatientAndDoctor')
+  async findPrescriptionByPatientAndDoctor(
+    @Query('patientId') patientId: string,
+    @Query('doctorId') doctorId: string,
+  ) {
+    try {
+
+      return await this.prescriptionService.findPrescriptionByPatientIdAndDoctorId(patientId, doctorId);
+    } catch (error) {
+      console.error('Error finding prescription:', error);
+      throw new Error(`Error finding prescription: ${error.message}`);
+    }
+  }
+
   @Get('/byPatient')
   async getPrescriptionsByPatientId(@Query('patientId') patientId: string) {
     console.log(patientId);
@@ -36,6 +51,7 @@ export class PrescriptionController {
     }
     return prescriptions;
   }
+
 
   @Post()
   create(@Body() createPrescriptionDto: CreatePrescriptionDto) {
@@ -75,18 +91,9 @@ export class PrescriptionController {
       throw new BadRequestException('Invalid data provided');
     }
 
-    // Save the prescription using the service
   }
 
-  // @Get('/byPatient')
-  // async getPrescriptionsByPatientId(@Query('patientId') patientId: string) {
-  //   const prescriptions =
-  //     await this.prescriptionService.findByPatientId(patientId);
-  //   if (!prescriptions || prescriptions.length === 0) {
-  //     throw new NotFoundException('No prescriptions found for this patient');
-  //   }
-  //   return prescriptions;
-  // }
+
   @Get()
   async findAll(@Query() query: any): Promise<Prescription[]> {
     return this.prescriptionService.findAll(query);
@@ -110,16 +117,16 @@ export class PrescriptionController {
   }
 
 
-  // @Get('findPrescriptionByDoctorId/:id')
-  // async findPrescriptionByDoctorId(@Param('id') id: string) {
-  //   console.log('from doctor controller', id);
-  //   return this.prescriptionService.findPrescriptionByDoctorId(id);
-  // }
 
   @Get('findPrescriptionByDoctorId/:id')
   async findPrescriptionByDoctorId(@Param('id') id: string) {
     console.log('from doctor controller', id);
     return this.prescriptionService.findPrescriptionByDoctorId(id);
   }
+
+
+
+
+
 
 }
