@@ -15,7 +15,7 @@ export class Rating extends Document {
   })
   rating: number;
 
-  @Prop({ required: true })
+  @Prop({ required: false })
   comment: string;
 }
 
