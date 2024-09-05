@@ -33,11 +33,10 @@ export class RatingsService {
     if (!patientt) {
       throw new NotFoundException('Patient not found.');
     }
-
     const appointment = await this.appointmentModel.findOne({
       doctor: doctorr._id,
       patient: patientt._id,
-      status: 'accepted',
+      status: 'completed',
     });
     console.log('Appointment:', appointment);
     if (!appointment) {
@@ -91,7 +90,7 @@ export class RatingsService {
     const appointment = await this.appointmentModel.findOne({
       doctor: doctor,
       patient: patient,
-      status: 'accepted',
+      status: 'completed',
     });
     if (!appointment) {
       throw new BadRequestException(

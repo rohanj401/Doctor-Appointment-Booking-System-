@@ -4,7 +4,7 @@ import { ClinicDetails } from 'src/doctors/dtos/clinicDetails';
 import { Availability, AvailabilitySchema } from './Availability.schema';
 
 @Schema()
-export class Doctor  extends Document{
+export class Doctor extends Document {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   user: Types.ObjectId;
 

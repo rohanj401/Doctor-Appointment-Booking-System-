@@ -19,6 +19,7 @@ import { ReportsModule } from './reports/reports.module';
 import { ConfigModule } from '@nestjs/config';
 import configuration from './config/configurations';
 import { ArticlesModule } from './articles/articles.module';
+import { AdminModule } from './admin/admin.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -43,9 +44,10 @@ import { ArticlesModule } from './articles/articles.module';
     PrescriptionModule,
     RatingsModule,
     ReportsModule,
-    ArticlesModule
+    ArticlesModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [AppService, CloudinaryService],
 })
-export class AppModule { }
+export class AppModule {}
