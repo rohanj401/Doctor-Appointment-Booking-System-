@@ -11,7 +11,7 @@ async function bootstrap() {
   //Added this to Increase Request Payload Size Limit
   app.use(express.json({ limit: '50mb' }));
   app.use(express.urlencoded({ limit: '50mb', extended: true }));
-
+  console.log(process.env.NEST_PORT);
   await app.listen(process.env.NEST_PORT || 5000);
 }
 bootstrap();

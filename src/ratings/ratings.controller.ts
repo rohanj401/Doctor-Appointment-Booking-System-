@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Param, Body, Delete, Patch } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Param,
+  Body,
+  Delete,
+  Patch,
+} from '@nestjs/common';
 import { RatingsService } from './ratings.service';
 import { CreateRatingDto } from './dto/create-rating.dto';
 import { UpdateRatingDto } from './dto/update-rating.dto';
@@ -9,7 +17,10 @@ export class RatingController {
   constructor(private readonly ratingService: RatingsService) {}
 
   @Post()
-  async createRating(@Body() createRatingDto: CreateRatingDto): Promise<Rating> {
+  async createRating(
+    @Body() createRatingDto: CreateRatingDto,
+  ): Promise<Rating> {
+    console.log(createRatingDto);
     return this.ratingService.createRating(createRatingDto);
   }
 
@@ -24,12 +35,23 @@ export class RatingController {
   }
 
   @Get('doctor/:doctor_id')
-  async getRatingsForDoctor(@Param('doctor_id') doctor_id: string): Promise<Rating[]> {
+  async getRatingsForDoctor(
+    @Param('doctor_id') doctor_id: string,
+  ): Promise<Rating[]> {
     return this.ratingService.getRatingsForDoctor(doctor_id);
   }
 
+  @Get('appointment/:appointment_id')
+  async getRatingsForappointment(
+    @Param('appointment_id') appointment_id: string,
+  ): Promise<Rating[]> {
+    return this.ratingService.getRatingsByAppointmentId(appointment_id);
+  }
   @Patch(':id')
-  async updateRating(@Param('id') id: string, @Body() updateRatingDto: UpdateRatingDto): Promise<Rating> {
+  async updateRating(
+    @Param('id') id: string,
+    @Body() updateRatingDto: UpdateRatingDto,
+  ): Promise<Rating> {
     return this.ratingService.updateRating(id, updateRatingDto);
   }
 

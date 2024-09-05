@@ -5,6 +5,7 @@ import {
   IsInt,
   Min,
   Max,
+  IsOptional,
 } from 'class-validator';
 import { Types } from 'mongoose';
 
@@ -18,12 +19,16 @@ export class CreateRatingDto {
   patient: Types.ObjectId;
 
   @IsNotEmpty()
+  @IsMongoId()
+  appointment: Types.ObjectId;
+
+  @IsNotEmpty()
   @IsInt()
   @Min(1)
   @Max(5)
   rating: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   comment: string;
 }
