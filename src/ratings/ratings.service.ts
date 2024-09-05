@@ -22,50 +22,59 @@ export class RatingsService {
   ) {}
 
   async createRating(createRatingDto: CreateRatingDto): Promise<Rating> {
-    const { doctor, patient, rating, comment } = createRatingDto;
-    const doctorr = await this.doctorModel.findById(doctor).exec();
+    const { doctor, patient, rating, comment, appointment } = createRatingDto;
+    const doctorData = await this.doctorModel.findById(doctor).exec();
 
-    if (!doctorr) {
+    if (!doctorData) {
       throw new NotFoundException('Doctor not found.');
     }
-    const patientt = await this.patientModel.findById(patient).exec();
+    const patientData = await this.patientModel.findById(patient).exec();
 
-    if (!patientt) {
+    if (!patientData) {
       throw new NotFoundException('Patient not found.');
     }
-    const appointment = await this.appointmentModel.findOne({
-      doctor: doctorr._id,
-      patient: patientt._id,
-      status: 'completed',
-    });
-    console.log('Appointment:', appointment);
-    if (!appointment) {
+
+    const appointmentData = await this.appointmentModel
+      .findById(appointment)
+      .exec();
+    console.log('appointmentData', appointmentData);
+    if (!appointmentData) {
       throw new BadRequestException(
         'No approved appointment found for this patient with the doctor.',
       );
     }
 
     const ratings = new this.ratingModel({
-      doctor: doctorr._id,
-      patient: patientt._id,
+      doctor: doctorData._id,
+      patient: patientData._id,
+      appointment: appointmentData._id,
       rating,
       comment,
     });
-    console.log('rating:', rating);
+    console.log('rating:', ratings);
     return ratings.save();
   }
   async getAllRatings(): Promise<Rating[]> {
     return this.ratingModel
       .find()
-      .populate('doctor', 'name')
-      .populate('patient', 'name')
+      .populate('doctor', 'name profilePic')
+      .populate('patient', 'name profilePic')
       .exec();
   }
 
-  async getRatingsForDoctor(doctor: string): Promise<Rating[]> {
+  async getRatingsForDoctor(doctorId: string): Promise<Rating[]> {
+    let doctor = new Types.ObjectId(doctorId);
     return this.ratingModel
       .find({ doctor })
-      .populate('patient_id', 'name')
+      .populate('patient', 'name profilePic')
+      .exec();
+  }
+  async getRatingsByAppointmentId(appointmentId: string): Promise<Rating[]> {
+    console.log(appointmentId);
+    let appointment = new Types.ObjectId(appointmentId);
+    return this.ratingModel
+      .find({ appointment })
+      .populate('patient', 'name profilePic')
       .exec();
   }
   async getRatingById(id: string): Promise<Rating> {
