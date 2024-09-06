@@ -26,7 +26,7 @@ import { CancelSlotDto } from './dtos/cancel-slot.dto';
 
 @Controller('doctors')
 export class DoctorsController {
-  constructor(private doctorsService: DoctorsService) {}
+  constructor(private doctorsService: DoctorsService) { }
 
   @Post('/addAvailability')
   async addDoctorAvailability(
@@ -130,6 +130,7 @@ export class DoctorsController {
 
   @Get()
   getDoctors() {
+    console.log('Fetching All Doctors from the controller');
     return this.doctorsService.getDoctors();
   }
 
