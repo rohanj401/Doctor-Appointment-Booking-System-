@@ -20,4 +20,10 @@ export class CreateReportDto {
 
   @IsOptional()
   date: Date;
+
+  @IsOptional()
+  appointmentDate: Date;
+
+  @IsOptional()
+  doctor: Types.ObjectId;
 }

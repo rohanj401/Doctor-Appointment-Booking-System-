@@ -16,6 +16,12 @@ export class Reports extends Document {
   @Prop({ required: true })
   type: string;
 
+  @Prop({ type: Types.ObjectId, ref: 'Doctor' })
+  doctor: Types.ObjectId;
+
+  @Prop()
+  appointmentDate: Date;
+
   @Prop({ required: false })
   date: Date;
 }
