@@ -5,7 +5,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { CreateArticleDto } from './dto/create-article.dto';
 import { Article, ArticleDocument } from 'src/schemas/Articles';
 import { Doctor } from 'src/schemas/doctor.schema';
@@ -35,6 +35,10 @@ export class ArticlesService {
   }
 
   async findAll(query: any = {}): Promise<Article[]> {
+    if (query.doctor) {
+      query.doctor = new Types.ObjectId(query.doctor);
+    }
+    console.log(query);
     return this.articleModel
       .find(query)
       .populate('doctor')
