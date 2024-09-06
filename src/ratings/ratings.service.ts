@@ -19,7 +19,7 @@ export class RatingsService {
     @InjectModel(Appointment.name) private appointmentModel: Model<Appointment>,
     @InjectModel(Doctor.name) private doctorModel: Model<Appointment>,
     @InjectModel(Patient.name) private patientModel: Model<Appointment>,
-  ) {}
+  ) { }
 
   async createRating(createRatingDto: CreateRatingDto): Promise<Rating> {
     const { doctor, patient, rating, comment, appointment } = createRatingDto;

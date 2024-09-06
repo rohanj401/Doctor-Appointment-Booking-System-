@@ -36,7 +36,7 @@ export class DoctorsService {
     @InjectModel(Appointment.name) private appointmentModel: Model<Appointment>,
     @InjectModel(Patient.name) private patientModel: Model<Patient>,
     private readonly mailerService: MailerService,
-  ) {}
+  ) { }
 
   async findDoctors(
     status: 'all' | 'verified' | 'unverified',
@@ -65,21 +65,19 @@ export class DoctorsService {
     };
   }
   async getDoctors(): Promise<(Doctor & { avgRating: number })[]> {
-    const doctors = await this.doctorModel.find().exec();
+    const doctors = await this.doctorModel.find({ isVerified: true }).exec();
     const doctorsWithRatings: (Doctor & { avgRating: number })[] = [];
 
     for (const doctor of doctors) {
       console.log('doctor: ' + doctor._id);
       const doctorObjectId =
         typeof doctor._id === 'string' && new Types.ObjectId(doctor._id);
-      const ratings = await this.ratingModel
-        .find({ doctor: doctor._id })
-        .exec();
+      const ratings = await this.ratingModel.find({ doctor: doctor._id }).exec();
       console.log('ratings: ' + ratings);
       const avgRating =
         ratings.length > 0
           ? ratings.reduce((acc, rating) => acc + rating.rating, 0) /
-            ratings.length
+          ratings.length
           : 0;
       const doctorObject = doctor.toObject() as Doctor & { avgRating: number };
       doctorObject.avgRating = avgRating;
@@ -205,7 +203,7 @@ export class DoctorsService {
         const avgRating =
           ratings.length > 0
             ? ratings.reduce((acc, rating) => acc + rating.rating, 0) /
-              ratings.length
+            ratings.length
             : 0;
         const doctorObject = doctor.toObject() as Doctor & {
           avgRating: number;
