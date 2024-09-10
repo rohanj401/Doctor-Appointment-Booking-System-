@@ -93,7 +93,10 @@ export class AppointmentsService {
 
     // Fetch appointments and populate patient and slot details
     const appointments = await this.appointmentModel
-      .find({ doctor: new Types.ObjectId(doctorId) })
+      .find({
+        doctor: new Types.ObjectId(doctorId),
+        status: { $in: ['accepted', 'completed'] },
+      })
       .populate({
         path: 'patient',
         select: 'profilePic name contactNumber email _id', // Ensure these fields are included
@@ -131,6 +134,7 @@ export class AppointmentsService {
             {
               slotId: appointment.slot.toString(),
               time: slotDetails?.time,
+              status: appointment.status,
               patient: {
                 patientId: patient?._id, // Include patientId
                 name: patient?.name,

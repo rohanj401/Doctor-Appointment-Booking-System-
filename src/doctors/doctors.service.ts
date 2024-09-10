@@ -435,6 +435,8 @@ export class DoctorsService {
         console.log('No appointment found for the slot');
         return; // Early return if no appointment exists
       }
+      appointment.status = 'cancelled';
+      await appointment.save();
 
       const doctor = await this.doctorModel.findById(cancelSlotDto.doctorId);
       if (!doctor) {
@@ -552,6 +554,8 @@ export class DoctorsService {
   private async sendCancellationEmails(appointments: any[], doctor: any) {
     try {
       for (const appointment of appointments) {
+        appointment.status = 'cancelled';
+        await appointment.save();
         const patient = appointment.patient;
         if (patient) {
           const user = patient.user;

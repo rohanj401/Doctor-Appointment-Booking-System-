@@ -15,7 +15,7 @@ import { UpdatePatientDto } from './dtos/update-patient.dto';
 
 @Controller('patients')
 export class PatientsController {
-  constructor(private patientsService: PatientsService) { }
+  constructor(private patientsService: PatientsService) {}
   @Post()
   createUser(@Body() createpatientDto: CreatePatientDto) {
     console.log(createpatientDto);
@@ -37,10 +37,9 @@ export class PatientsController {
     if (!isValid) throw new HttpException('User Not Found', 404);
     const patient = await this.patientsService.getPatientById(id);
     if (!patient) throw new HttpException('Patient Not Found ', 404);
+    console.log('Patient is :', patient);
     return patient;
   }
-
-
 
   @Patch(':id')
   updatePatient(
