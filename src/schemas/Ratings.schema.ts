@@ -10,6 +10,9 @@ export class Rating extends Document {
   @Prop({ type: Types.ObjectId, ref: 'Patient', required: true })
   patient: Types.ObjectId;
 
+  @Prop({ type: Types.ObjectId, ref: 'Appointment', required: true })
+  appointment: Types.ObjectId;
+
   @Prop({
     required: true,
   })

@@ -22,8 +22,9 @@ export class PatientsController {
     return this.patientsService.createPatient(createpatientDto);
   }
 
-  @Get()
+  @Get('/allPatients')
   getPatients() {
+    console.log('Fetching All Patients');
     return this.patientsService.getPatients();
   }
   @Get('/fetchPatientByUserId/:id')
