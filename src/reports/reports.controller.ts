@@ -24,6 +24,7 @@ export class ReportsController {
   @Get()
   async getReports(@Query('filter') filter: string): Promise<any[]> {
     const query = filter ? JSON.parse(filter) : {};
+    console.log('query selctor is ', query);
     return this.reportsService.getReports(query);
   }
   @Delete(':id')
