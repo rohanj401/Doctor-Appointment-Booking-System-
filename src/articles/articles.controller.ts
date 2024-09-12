@@ -18,6 +18,7 @@ export class ArticlesController {
 
   @Post()
   async create(@Body() createArticleDto: CreateArticleDto) {
+    console.log('creatin article');
     return this.articlesService.create(createArticleDto);
   }
   

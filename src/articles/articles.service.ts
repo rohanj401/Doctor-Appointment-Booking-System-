@@ -9,6 +9,7 @@ import { Model, Types } from 'mongoose';
 import { CreateArticleDto } from './dto/create-article.dto';
 import { Article, ArticleDocument } from 'src/schemas/Articles.schema';
 import { Doctor } from 'src/schemas/doctor.schema';
+import { Type } from 'class-transformer';
 
 @Injectable()
 export class ArticlesService {
@@ -18,19 +19,22 @@ export class ArticlesService {
   ) {}
 
   async create(createArticleDto: CreateArticleDto): Promise<Article> {
+    console.log('doctorId is ', createArticleDto.doctorId);
+    const doctorId = new Types.ObjectId(createArticleDto.doctorId);
+    console.log('creating article for doctor Id ', doctorId);
     const doctor = await this.doctorModel
       .findById(createArticleDto.doctorId)
       .exec();
+    console.log('doctor is ', doctor);
 
     if (!doctor) {
       throw new ForbiddenException('Only existing doctors can write articles');
     }
-
     const createdArticle = new this.articleModel({
       ...createArticleDto,
       doctor: doctor._id,
     });
-
+    console.log('article created successfully');
     return createdArticle.save();
   }
 
