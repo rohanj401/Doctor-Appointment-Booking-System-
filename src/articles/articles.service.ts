@@ -7,7 +7,7 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { CreateArticleDto } from './dto/create-article.dto';
-import { Article, ArticleDocument } from 'src/schemas/Articles';
+import { Article, ArticleDocument } from 'src/schemas/Articles.schema';
 import { Doctor } from 'src/schemas/doctor.schema';
 
 @Injectable()

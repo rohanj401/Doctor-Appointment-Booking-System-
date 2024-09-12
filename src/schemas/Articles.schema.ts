@@ -13,7 +13,7 @@ export class Article {
   @Prop({ required: true })
   content: string;
 
-  @Prop({ required: true })
+  @Prop({ required: false })
   image: string;
 
   @Prop({ required: true, type: Types.ObjectId, ref: Doctor.name })

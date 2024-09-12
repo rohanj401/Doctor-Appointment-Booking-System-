@@ -15,14 +15,29 @@ export class ContactController {
       message: string;
     },
   ) {
+    console.log(' ******************** Inside contorller ************');
+    console.log('body', body);
     const { name, email, subject, message } = body;
-    const fullMessage = `Name: ${name}\nEmail: ${email}\nSubject: ${subject}\n\nMessage:\n${message}`;
+    // const fullMessage = `${message}`;
+    // console.log('FULL Message is ', fullMessage);
+    const fullMessage = `Name: ${name}\nEmail: ${email}\nSubject: ${subject}\nMessage: ${message}`;
+    // name: ${name} <br>email: ${email}<br>subject: ${subject}<br>message: ${message}
 
+    // Create HTML content for better formatting
+    const htmlContent = `
+     
+      <p><strong>Name:</strong> ${name}</p>
+      <p><strong>Email:</strong> ${email}</p>
+      <p><strong>Subject:</strong> ${subject}</p>
+      <p><strong>Message:</strong></p>
+      <p>${message}</p>
+    `;
     await this.mailService.sendMail(
       email,
-      'aishwaryar@valueaddsofttech.com',
+      process.env.USER,
       subject,
       fullMessage,
+      htmlContent,
     );
     return { status: 'success' };
   }
