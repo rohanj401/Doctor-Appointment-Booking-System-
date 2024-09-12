@@ -36,7 +36,7 @@ export class DoctorsService {
     @InjectModel(Appointment.name) private appointmentModel: Model<Appointment>,
     @InjectModel(Patient.name) private patientModel: Model<Patient>,
     private readonly mailerService: MailerService,
-  ) { }
+  ) {}
 
   async findDoctors(
     status: 'all' | 'verified' | 'unverified',
@@ -69,15 +69,15 @@ export class DoctorsService {
     const doctorsWithRatings: (Doctor & { avgRating: number })[] = [];
 
     for (const doctor of doctors) {
-      console.log('doctor: ' + doctor._id);
       const doctorObjectId =
         typeof doctor._id === 'string' && new Types.ObjectId(doctor._id);
-      const ratings = await this.ratingModel.find({ doctor: doctor._id }).exec();
-      console.log('ratings: ' + ratings);
+      const ratings = await this.ratingModel
+        .find({ doctor: doctor._id })
+        .exec();
       const avgRating =
         ratings.length > 0
           ? ratings.reduce((acc, rating) => acc + rating.rating, 0) /
-          ratings.length
+            ratings.length
           : 0;
       const doctorObject = doctor.toObject() as Doctor & { avgRating: number };
       doctorObject.avgRating = avgRating;
@@ -97,7 +97,6 @@ export class DoctorsService {
   }
 
   async fetchDoctorByUserId(userId: string) {
-    console.log('getting doctor by userId');
     const doctor = await this.doctorModel
       .findOne({ user: new mongoose.Types.ObjectId(userId) })
       .exec();
@@ -110,7 +109,6 @@ export class DoctorsService {
   }
 
   async patchDoctor(id: string, updateDoctorDto: UpdateDoctorDto) {
-    console.log('getting doctor by userId');
     const doctor = await this.doctorModel.findOne({ _id: id }).exec();
 
     if (!doctor) {
@@ -147,16 +145,6 @@ export class DoctorsService {
     radiusInKm?: number,
     location?: [number, number], // [latitude, longitude]
   ) {
-    console.log(
-      'from search doctor service',
-      state,
-      city,
-      speciality,
-      gender,
-      radiusInKm,
-      location,
-    );
-
     // Initialize the query object
     const query: any = {
       'clinicDetails.state': state,
@@ -187,23 +175,19 @@ export class DoctorsService {
       };
     }
 
-    console.log('Query is :', JSON.stringify(query));
-
     try {
       // **Use the query object directly with `find`**
       const response = await this.doctorModel.find(query).exec();
-      console.log('Doctors found:', response);
       const doctorsWithRatings: (Doctor & { avgRating: number })[] = [];
 
       for (const doctor of response) {
         const ratings = await this.ratingModel
           .find({ doctor: doctor._id })
           .exec();
-        console.log('ratings: ' + ratings);
         const avgRating =
           ratings.length > 0
             ? ratings.reduce((acc, rating) => acc + rating.rating, 0) /
-            ratings.length
+              ratings.length
             : 0;
         const doctorObject = doctor.toObject() as Doctor & {
           avgRating: number;
@@ -288,7 +272,6 @@ export class DoctorsService {
   }
 
   async addAvailability(data: any): Promise<Doctor> {
-    console.log(data);
     const doctor = await this.doctorModel.findById(data.doctorId);
     if (!doctor) {
       throw new NotFoundException(`Doctor with ID ${data.doctorId} not found`);
