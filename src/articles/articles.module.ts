@@ -3,7 +3,7 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ArticlesService } from './articles.service';
 import { ArticlesController } from './articles.controller';
-import { Article,ArticleSchema } from 'src/schemas/Articles';
+import { Article,ArticleSchema } from 'src/schemas/Articles.schema';
 import { Doctor, DoctorSchema  } from 'src/schemas/doctor.schema';
 
 @Module({

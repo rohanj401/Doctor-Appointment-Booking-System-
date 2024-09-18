@@ -1,5 +1,6 @@
 // src/articles/dto/create-article.dto.ts
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { Types } from 'mongoose';
 
 export class CreateArticleDto {
   @IsNotEmpty()
@@ -10,17 +11,17 @@ export class CreateArticleDto {
   @IsString()
   content: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   image: string;
 
   @IsNotEmpty()
   @IsString()
-  doctorId: string; // The ID of the doctor writing the article
+  doctorId: string; 
 
   @IsNotEmpty()
   @IsString()
-  category: string; // The article category (e.g., "Healthy Hair")
+  category: string; 
 
   @IsNotEmpty()
   @IsString()
