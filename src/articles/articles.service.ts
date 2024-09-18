@@ -7,8 +7,8 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { CreateArticleDto } from './dto/create-article.dto';
-import { Article, ArticleDocument } from 'src/schemas/Articles.schema';
-import { Doctor } from 'src/schemas/doctor.schema';
+import { Article, ArticleDocument } from '../schemas/Articles.schema';
+import { Doctor } from '../schemas/doctor.schema';
 import { Type } from 'class-transformer';
 
 @Injectable()
