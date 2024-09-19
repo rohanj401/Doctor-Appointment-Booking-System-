@@ -21,7 +21,7 @@ export class ArticlesController {
     console.log('creatin article');
     return this.articlesService.create(createArticleDto);
   }
-
+  
   @Get()
   async findAll(@Query('filter') filter: string) {
     const query = filter ? JSON.parse(filter) : {};

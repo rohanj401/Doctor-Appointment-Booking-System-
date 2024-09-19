@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
-import { ClinicDetails } from 'src/doctors/dtos/clinicDetails';
+import { ClinicDetails } from '../doctors/dtos/clinicDetails';
 import { Availability, AvailabilitySchema } from './Availability.schema';
 
 @Schema()
