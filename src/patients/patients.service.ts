@@ -1,18 +1,17 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
-import { Patient } from 'src/schemas/Patient.schema';
+import { Patient } from '../schemas/Patient.schema';
 import { CreatePatientDto } from './dtos/create-patient.dto';
 import { UpdatePatientDto } from './dtos/update-patient.dto';
-import { User } from 'src/schemas/User.schema';
-
+import { User } from '../schemas/User.schema';
 
 @Injectable()
 export class PatientsService {
   constructor(
     @InjectModel(Patient.name) private patientModel: Model<Patient>,
     @InjectModel(User.name) private userModel: Model<User>,
-  ) { }
+  ) {}
 
   createPatient(createPatientDto: CreatePatientDto) {
     const newPatient = new this.patientModel(createPatientDto);
@@ -46,9 +45,6 @@ export class PatientsService {
     return patient;
   }
 
-
-
-
   async deletePatient(patientId: string): Promise<void> {
     const patient = await this.patientModel.findById(patientId);
 
@@ -62,5 +58,4 @@ export class PatientsService {
     // Delete the patient
     await this.patientModel.findByIdAndDelete(patientId);
   }
-
 }

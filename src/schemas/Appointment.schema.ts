@@ -23,6 +23,9 @@ export class Appointment extends Document {
     default: 'accepted',
   })
   status: string;
+
+  @Prop({ type: Boolean, default: false })
+  notified: boolean;
 }
 
 export const AppointmentSchema = SchemaFactory.createForClass(Appointment);

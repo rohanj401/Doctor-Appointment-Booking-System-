@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Types } from 'mongoose';
-import { Address } from 'src/patients/dtos/adddress';
+import { Address } from '../patients/dtos/adddress';
 
 @Schema({ timestamps: true })
 export class Patient {
