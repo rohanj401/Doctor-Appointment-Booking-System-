@@ -8,21 +8,25 @@ import mongoose, { Model, Types } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { CreateDoctorDto } from './dtos/create-doctor.dto';
 import { UpdateDoctorDto } from './dtos/update-doctor.dto';
-import { Doctor } from 'src/schemas/doctor.schema';
-import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
-import { User } from 'src/schemas/User.schema';
-import { Availability } from 'src/schemas/Availability.schema';
-import { Slot } from 'src/schemas/Slot.schema';
+import { Doctor } from '../schemas/doctor.schema';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
+import { User } from '../schemas/User.schema';
+import { Availability } from '../schemas/Availability.schema';
+import { Slot } from '../schemas/Slot.schema';
 import { CancelSlotDto } from './dtos/cancel-slot.dto';
-import { Appointment } from 'src/schemas/Appointment.schema';
-import { Patient } from 'src/schemas/Patient.schema';
+import { Appointment } from '../schemas/Appointment.schema';
+import { Patient } from '../schemas/Patient.schema';
 import { MailerService } from '@nestjs-modules/mailer';
-import { Rating } from 'src/schemas/Ratings.schema';
-import { Prescription } from 'src/schemas/Prescription.schema';
+import { Rating } from '../schemas/Ratings.schema';
+import { Prescription } from '../schemas/Prescription.schema';
+import * as Twilio from 'twilio';
+
 // import { zonedTimeToUtc } from 'date-fns-tz';
 
 @Injectable()
 export class DoctorsService {
+  private twilioClient: Twilio.Twilio;
+
   constructor(
     private readonly cloudinaryService: CloudinaryService,
     @InjectModel(Doctor.name) private doctorModel: Model<Doctor>,
@@ -36,7 +40,12 @@ export class DoctorsService {
     @InjectModel(Appointment.name) private appointmentModel: Model<Appointment>,
     @InjectModel(Patient.name) private patientModel: Model<Patient>,
     private readonly mailerService: MailerService,
-  ) {}
+  ) {
+    this.twilioClient = Twilio(
+      process.env.TWILIO_ACCOUNT_SID,
+      process.env.TWILIO_AUTH_TOKEN,
+    );
+  }
 
   async findDoctors(
     status: 'all' | 'verified' | 'unverified',
@@ -203,38 +212,6 @@ export class DoctorsService {
     }
   }
 
-  // async updateDoctor(
-  //   id: string,
-  //   updateDoctorDto: UpdateDoctorDto,
-  // ): Promise<Doctor> {
-  //   let doctor = { ...updateDoctorDto } as any;
-  //   if (updateDoctorDto.document) {
-  //     let document = await this.cloudinaryService.uploadImage(
-  //       updateDoctorDto.document,
-  //     );
-  //     delete updateDoctorDto.document;
-  //     doctor.documentUrl = document.secure_url;
-  //   }
-
-  //   if (updateDoctorDto.profilePic) {
-  //     let profilePic = await this.cloudinaryService.uploadImage(
-  //       updateDoctorDto.profilePic,
-  //     );
-  //     delete updateDoctorDto.profilePic;
-  //     doctor.profilePic = profilePic.secure_url;
-  //   }
-
-  //   const updatedDoctor = await this.doctorModel
-  //     .findByIdAndUpdate(id, doctor, { new: true })
-  //     .exec();
-
-  //   if (!updatedDoctor) {
-  //     throw new NotFoundException(`Doctor with ID "${id}" not found`);
-  //   }
-
-  //   return updatedDoctor;
-  // }
-
   async deleteDoctor(doctorId: string): Promise<void> {
     const doctor = await this.doctorModel.findById(doctorId);
 
@@ -387,7 +364,11 @@ export class DoctorsService {
         multi: true,
       },
     );
-
+    const formattedDate = new Date(date).toLocaleDateString('en-GB', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
     console.log(`Matched Count: ${result.matchedCount}`);
     console.log(`Modified Count: ${result.modifiedCount}`);
 
@@ -430,9 +411,24 @@ export class DoctorsService {
       if (!patient) {
         throw new NotFoundException('Patient not found');
       }
+      console.log(
+        'sending Appointmnet Cancellation message to :',
+        patient.contactNumber,
+      );
+      await this.twilioClient.messages.create({
+        body: `   
+        Dear ${patient.name}
+        Your appointment with Dr. ${doctor.name} scheduled for ${formattedDate} has been cancelled due to unforeseen circumstances. 
+        We apologize for any inconvenience this may cause. 
+        Please contact the hospital management team to reschedule your appointment at your earliest convenience.
+        
+        Thank you for your understanding.`,
+        from: process.env.TWILIO_PHONE_NUMBER,
+        to: patient.contactNumber,
+      });
 
       // Send the email asynchronously after the slot has been cancelled
-      this.sendCancellationEmail(doctor, patient, isoDate).catch((err) =>
+      this.sendCancellationEmail(doctor, patient, formattedDate).catch((err) =>
         console.error('Error sending cancellation email:', err),
       );
     }
@@ -441,7 +437,7 @@ export class DoctorsService {
   private async sendCancellationEmail(
     doctor: any,
     patient: any,
-    isoDate: string,
+    formattedDate: string,
   ): Promise<void> {
     const user = await this.userModel.findById(patient.user);
     if (user) {
@@ -453,7 +449,7 @@ export class DoctorsService {
             <body>
               <h1>Dear ${patient.name},</h1>
               <p>
-                We regret to inform you that your appointment scheduled for ${isoDate} with Dr. ${doctor.name} has been cancelled due to unforeseen circumstances.
+                We regret to inform you that your appointment scheduled for ${formattedDate} with Dr. ${doctor.name} has been cancelled due to unforeseen circumstances.
               </p>
               <p>
                 We apologize for any inconvenience this may cause. Please contact the hospital management team to reschedule your appointment at your earliest convenience.
@@ -525,7 +521,7 @@ export class DoctorsService {
       };
 
       // Send notification emails to all patients with appointments on that date
-      this.sendCancellationEmails(appointments, doctor);
+      this.sendCancellationEmailsAndSms(appointments, doctor);
 
       return response;
     } catch (error) {
@@ -534,13 +530,30 @@ export class DoctorsService {
   }
 
   // Method to send cancellation emails in the background
-  private async sendCancellationEmails(appointments: any[], doctor: any) {
+  private async sendCancellationEmailsAndSms(appointments: any[], doctor: any) {
     try {
       for (const appointment of appointments) {
         appointment.status = 'cancelled';
         await appointment.save();
         const patient = appointment.patient;
         if (patient) {
+          const formattedDate = new Date(
+            appointment.appointmentDate,
+          ).toLocaleDateString('en-GB', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
+          });
+          await this.twilioClient.messages.create({
+            body: `Dear ${patient.name}
+            Your appointment with Dr. ${doctor.name} scheduled for ${formattedDate} has been cancelled due to unforeseen circumstances. 
+            We apologize for any inconvenience this may cause. 
+            Please contact the hospital management team to reschedule your appointment at your earliest convenience.
+            
+            Thank you for your understanding.`,
+            from: process.env.TWILIO_PHONE_NUMBER,
+            to: patient.contactNumber,
+          });
           const user = patient.user;
           if (user) {
             await this.mailerService.sendMail({

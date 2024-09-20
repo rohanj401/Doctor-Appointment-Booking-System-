@@ -10,7 +10,7 @@ import {
   IsPhoneNumber,
   IsString,
 } from 'class-validator';
-import { Coordinates } from 'src/doctors/dtos/coordinates';
+import { Coordinates } from '../../doctors/dtos/coordinates';
 
 export class CreateUserDoctorDto {
   @IsNotEmpty()
@@ -72,22 +72,6 @@ export class CreateUserDoctorDto {
 
   @IsOptional()
   coordinates?: Coordinates; // Add this line
-
-  // @Prop({
-  //   type: {
-  //     type: String,
-  //     enum: ['Point'],
-  //     required: true,
-  //   },
-  //   coordinates: {
-  //     type: [Number],
-  //     required: true,
-  //   },
-  // })
-  // location: {
-  //   type: 'Point';
-  //   coordinates: [number, number];
-  // };
 
   @IsNumber()
   slotDuration: number;

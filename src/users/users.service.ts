@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { CreateUserDto } from './dtos/create-user.dto';
-import { User } from 'src/schemas/User.schema';
+import { User } from '../schemas/User.schema';
 import mongoose, { Model, Types } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { UpdateUserDto } from './dtos/update-user.dto';
@@ -13,14 +13,14 @@ import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { MailerService } from '@nestjs-modules/mailer';
 import { HttpService } from '@nestjs/axios';
-import { Doctor } from 'src/schemas/doctor.schema';
-import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
+import { Doctor } from '../schemas/doctor.schema';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { CreateDoctorDto } from 'src/doctors/dtos/create-doctor.dto';
 import { CreatePatientDto } from 'src/patients/dtos/create-patient.dto';
-import { Patient } from 'src/schemas/Patient.schema';
+import { Patient } from '../schemas/Patient.schema';
 import { CreateUserDoctorDto } from './dtos/create-user-doctor.dto';
 import { CreateUserPatientDto } from './dtos/create-user-patient.dto';
-import { Coordinates } from 'src/doctors/dtos/coordinates';
+import { Coordinates } from '../doctors/dtos/coordinates';
 import { CreateUserAdminDto } from './dtos/create-user-admin.dto';
 @Injectable()
 export class UsersService {
@@ -54,22 +54,22 @@ export class UsersService {
     const { email, password, role, ...otherData } = createUserDto;
     if (!userr) {
       //addedfor email verification
-      const payload = { email: user.email };
-      const token = this.jwtService.sign(payload, {
-        secret: process.env.JwtSecret,
-        expiresIn: '1h',
-      });
-      console.log(`Toke is ${token}`);
-      const url = `http://localhost:${process.env.NEXT_PORT}/users/verify-email?token=${token}`;
-      await this.mailerService.sendMail({
-        to: email,
-        subject: 'Email Verification',
-        // template: './verify-email', // Path to your email template
-        // context: {
-        //   url,
-        // },
-        html: `Hello ,<br>Please Visit Below Link to Verify : <p>${url}</p>`,
-      });
+      // const payload = { email: user.email };
+      // const token = this.jwtService.sign(payload, {
+      //   secret: process.env.JwtSecret,
+      //   expiresIn: '1h',
+      // });
+      // console.log(`Toke is ${token}`);
+      // const url = `http://localhost:${process.env.NEXT_PORT}/users/verify-email?token=${token}`;
+      // await this.mailerService.sendMail({
+      //   to: email,
+      //   subject: 'Email Verification',
+      //   // template: './verify-email', // Path to your email template
+      //   // context: {
+      //   //   url,
+      //   // },
+      //   html: `Hello ,<br>Please Visit Below Link to Verify : <p>${url}</p>`,
+      // });
       console.log(`Hashing Paswword `);
       const password = await bcrypt.hash(user.password, 10);
       console.log('Paswword Hashed ');
@@ -89,8 +89,6 @@ export class UsersService {
   }
 
   async createUserPatient(createUserPatientDto: CreateUserPatientDto) {
-    // console.log(typeof (createUserPatientDto.profilePic));
-    // console.log(createUserPatientDto.profilePic);
     const user = new this.userModel(createUserPatientDto);
     const userr = await this.getUserByEmail(user.email);
     const { email, password, role, ...otherData } = createUserPatientDto;
