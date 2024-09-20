@@ -12,6 +12,7 @@ import {
   Post,
   Query,
   UploadedFiles,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import mongoose from 'mongoose';
@@ -23,6 +24,7 @@ import {
   FilesInterceptor,
 } from '@nestjs/platform-express';
 import { CancelSlotDto } from './dtos/cancel-slot.dto';
+import { AuthGuard } from 'src/auth/auth.gaurd';
 
 @Controller('doctors')
 export class DoctorsController {
@@ -129,6 +131,7 @@ export class DoctorsController {
   }
 
   @Get()
+  // @UseGuards(AuthGuard)
   getDoctors() {
     console.log('Fetching All Doctors from the controller');
     return this.doctorsService.getDoctors();
