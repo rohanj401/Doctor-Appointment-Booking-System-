@@ -21,7 +21,7 @@ export class AppointmentsService {
     @InjectModel(Doctor.name) private readonly doctorModel: Model<Doctor>,
     @InjectModel(Patient.name) private readonly patientModel: Model<Patient>,
     @InjectModel(Slot.name) private readonly slotModel: Model<Slot>,
-  ) {}
+  ) { }
   async bookSlot(
     doctorId: Types.ObjectId,
     patientId: Types.ObjectId,
@@ -206,8 +206,8 @@ export class AppointmentsService {
   ): Promise<Appointment> {
     const updatedAppointment = await this.appointmentModel
       .findByIdAndUpdate(id, updateAppointmentDto, { new: true })
-      .populate('doctor', 'name email speciality qualification gender') 
-      .populate('patient', 'name email mobileNo gender') 
+      .populate('doctor', 'name email speciality qualification gender')
+      .populate('patient', 'name email mobileNo gender')
       .exec();
     if (!updatedAppointment) {
       throw new NotFoundException(`Appointment with ID "${id}" not found`);
