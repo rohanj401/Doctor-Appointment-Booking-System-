@@ -73,6 +73,7 @@ export class DoctorsService {
       total: totalDoctors,
     };
   }
+  
   async getDoctors(): Promise<(Doctor & { avgRating: number })[]> {
     const doctors = await this.doctorModel.find({ isVerified: true }).exec();
     const doctorsWithRatings: (Doctor & { avgRating: number })[] = [];

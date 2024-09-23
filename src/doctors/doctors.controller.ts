@@ -28,9 +28,10 @@ import { AuthGuard } from 'src/auth/auth.gaurd';
 
 @Controller('doctors')
 export class DoctorsController {
-  constructor(private doctorsService: DoctorsService) { }
+  constructor(private doctorsService: DoctorsService) {}
 
   @Post('/addAvailability')
+  @UseGuards(AuthGuard)
   async addDoctorAvailability(
     @Body() data: any,
     // @Body('dates') dates: string[],
@@ -41,17 +42,20 @@ export class DoctorsController {
   }
 
   @Post(':id/verify')
+  @UseGuards(AuthGuard)
   async verifyDoctor(@Param('id') id: string) {
     return this.doctorsService.verifyDoctor(id);
   }
 
   @Patch('/cancelSlot')
+  @UseGuards(AuthGuard)
   async cancelSlot(@Body() cancelSlotDto: CancelSlotDto): Promise<void> {
     console.log('Cancelling slot ');
     return await this.doctorsService.cancelSlot(cancelSlotDto);
   }
 
   @Patch('/cancelAllSlots')
+  @UseGuards(AuthGuard)
   async cancelAllSlots(@Body() body: { doctorId: string; date: string }) {
     const { doctorId, date } = body;
     console.log('Cancelling all slots');
@@ -84,6 +88,7 @@ export class DoctorsController {
   }
 
   @Get('/fetchDoctorByUserId/:id')
+  @UseGuards(AuthGuard)
   async fetchDoctorByUserId(@Param('id') id: string) {
     try {
       return this.doctorsService.fetchDoctorByUserId(id);
@@ -93,6 +98,7 @@ export class DoctorsController {
   }
 
   @Get('/getAvailableDates/:id')
+  @UseGuards(AuthGuard)
   async getAvailableDates(@Param('id') id: string) {
     try {
       return await this.doctorsService.fetchAvailableDates(id);
@@ -101,6 +107,7 @@ export class DoctorsController {
     }
   }
   @Get('/getAllDoctors-Admin')
+  @UseGuards(AuthGuard)
   async getDoctorss(
     @Query('status') status: 'all' | 'verified' | 'unverified' = 'all',
     @Query('page') page: number = 1,
@@ -116,6 +123,7 @@ export class DoctorsController {
   }
 
   @Get('getNearByDoctors')
+  @UseGuards(AuthGuard)
   findNearbyDoctors(@Body() data: any) {
     console.log('Finding nearBy Doctors');
     return this.doctorsService.findNearbyDoctors(data);
@@ -138,6 +146,7 @@ export class DoctorsController {
   }
 
   @Patch(':id')
+  @UseGuards(AuthGuard)
   updateDoctor(
     @Param('id') id: string,
     @Body() updateDoctorDto: UpdateDoctorDto,
@@ -146,45 +155,12 @@ export class DoctorsController {
     if (!isValid) throw new HttpException('User Not Found', 404);
     return this.doctorsService.patchDoctor(id, updateDoctorDto);
   }
-  // @Patch(':id')
-  // @UseInterceptors(AnyFilesInterceptor())
-  // async updateDoctor(
-  //   @UploadedFiles() files: Array<Express.Multer.File>,
-  //   @Param('id') id: string,
-  //   @Body() updateDoctorDto: UpdateDoctorDto,
-  // ) {
-  //   const isValid = mongoose.Types.ObjectId.isValid(id);
-  //   if (!isValid) throw new HttpException('Doctor Not Found', 404);
-  //   const document = files.find((file) => file.fieldname === 'document');
-  //   const profilePic = files.find((file) => file.fieldname === 'profilePic');
-
-  //   if (document) {
-  //     updateDoctorDto.document = document;
-  //   }
-  //   if (profilePic) {
-  //     updateDoctorDto.profilePic = profilePic;
-  //   }
-  //   return this.doctorsService.updateDoctor(id, updateDoctorDto);
-  // }
 
   @Delete(':id')
+  @UseGuards(AuthGuard)
   async deleteDoctor(@Param('id') id: string): Promise<void> {
     return this.doctorsService.deleteDoctor(id);
   }
-
-  //get doctors by city, state, speciality
-  // @Get('search')
-  // async searchDoctors(
-  //   @Query('state') state: string,
-  //   @Query('city') city: string,
-  //   @Query('specialty') specialty?: string,
-  //   @Query('radius') radius?: number,
-  //   @Query('location') location?: [number, number], // [longitude, latitude]
-  // ) {
-  //   console.log('searching doctors controller');
-
-  //   return this.doctorsService.searchDoctors(state, city, specialty, radius, location);
-  // }
 
   @Get('search')
   async searchDoctors(
@@ -221,14 +197,6 @@ export class DoctorsController {
       throw new BadRequestException('Invalid radius');
     }
 
-    return this.doctorsService.searchDoctors(
-      state,
-      city,
-      specialty,
-      gender,
-      radiusInKm,
-      location,
-    );
     return this.doctorsService.searchDoctors(
       state,
       city,
