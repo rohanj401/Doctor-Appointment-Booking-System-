@@ -11,6 +11,7 @@ import {
   Res,
   UseInterceptors,
   UploadedFiles,
+  UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dtos/create-user.dto';
@@ -22,41 +23,40 @@ import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { CreateUserDoctorDto } from './dtos/create-user-doctor.dto';
 import { CreateUserPatientDto } from './dtos/create-user-patient.dto';
 import { CreateUserAdminDto } from './dtos/create-user-admin.dto';
+import { AuthGuard } from 'src/auth/auth.gaurd';
 
 @Controller('users')
 export class UsersController {
-  constructor(private usersService: UsersService) { }
+  constructor(private usersService: UsersService) {}
   @Post('/doctor')
-  createUserDoctor(
-    @Body() createUserDoctorDto: CreateUserDoctorDto,
-  ) {
-
+  @UseGuards(AuthGuard)
+  createUserDoctor(@Body() createUserDoctorDto: CreateUserDoctorDto) {
     console.log(` document  is ${JSON.stringify(createUserDoctorDto)}`);
     return this.usersService.createUserDoctor(createUserDoctorDto);
   }
 
   @Post('/patient')
-  createUserPatient(
-    @Body() createUserPatientDto: CreateUserPatientDto,
-  ) {
-
+  @UseGuards(AuthGuard)
+  createUserPatient(@Body() createUserPatientDto: CreateUserPatientDto) {
     console.log(` document  is ${JSON.stringify(createUserPatientDto)}`);
     return this.usersService.createUserPatient(createUserPatientDto);
   }
 
-
   @Get()
+  @UseGuards(AuthGuard)
   getUsers() {
     return this.usersService.getUsers();
   }
 
   @Get('/getUserByEmail')
+  @UseGuards(AuthGuard)
   async getUserByEmail(@Query('email') email: string) {
-    console.log("email is " + email);
+    console.log('email is ' + email);
     return this.usersService.getUserByEmail(email);
   }
 
   @Get('verify-email')
+  @UseGuards(AuthGuard)
   async verifyEmail(@Query('token') token: string, @Res() res: Response) {
     console.log(`token is ${token}`);
 
@@ -70,6 +70,7 @@ export class UsersController {
     }
   }
   @Get(':id')
+  @UseGuards(AuthGuard)
   async getUserById(@Param('id') id: string) {
     const isValid = mongoose.Types.ObjectId.isValid(id);
     if (!isValid) throw new HttpException('User Not Found', 404);
@@ -79,6 +80,7 @@ export class UsersController {
   }
 
   @Patch(':id')
+  @UseGuards(AuthGuard)
   async updateUser(
     @Param('id') id: string,
     @Body() updateUserDto: UpdateUserDto,
@@ -88,23 +90,18 @@ export class UsersController {
     return await this.usersService.updateUser(id, updateUserDto);
   }
 
-
   // Endpoint to delete a user by ID
   @Delete(':id')
+  @UseGuards(AuthGuard)
   async deleteUser(@Param('id') id: string): Promise<void> {
     return this.usersService.deleteUserById(id);
   }
 
-
-
   //admin creation----------
 
   @Post('/admin')
-  async createUserAdmin(
-    @Body() createUserAdminDto: CreateUserAdminDto,
-  ) {
+  @UseGuards(AuthGuard)
+  async createUserAdmin(@Body() createUserAdminDto: CreateUserAdminDto) {
     return this.usersService.createUserAdmin(createUserAdminDto);
   }
-
-
 }

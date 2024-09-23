@@ -10,6 +10,7 @@ import {
   Query,
   BadRequestException,
   NotFoundException,
+  UseGuards,
 } from '@nestjs/common';
 import { PrescriptionService } from './prescription.service';
 import { CreatePrescriptionDto } from './dtos/create-prescription.dto';
@@ -19,19 +20,23 @@ import { Types } from 'mongoose';
 import { from } from 'rxjs';
 import { query } from 'express';
 import { Medicine, Prescription } from 'src/schemas/Prescription.schema';
+import { AuthGuard } from 'src/auth/auth.gaurd';
 
 @Controller('prescriptions')
 export class PrescriptionController {
-  constructor(private readonly prescriptionService: PrescriptionService) { }
+  constructor(private readonly prescriptionService: PrescriptionService) {}
 
   @Get('/findPrescriptionByPatientAndDoctor')
+  @UseGuards(AuthGuard)
   async findPrescriptionByPatientAndDoctor(
     @Query('patientId') patientId: string,
     @Query('doctorId') doctorId: string,
   ) {
     try {
-
-      return await this.prescriptionService.findPrescriptionByPatientIdAndDoctorId(patientId, doctorId);
+      return await this.prescriptionService.findPrescriptionByPatientIdAndDoctorId(
+        patientId,
+        doctorId,
+      );
     } catch (error) {
       console.error('Error finding prescription:', error);
       throw new Error(`Error finding prescription: ${error.message}`);
@@ -39,6 +44,7 @@ export class PrescriptionController {
   }
 
   @Get('/byPatient')
+  @UseGuards(AuthGuard)
   async getPrescriptionsByPatientId(@Query('patientId') patientId: string) {
     console.log(patientId);
     if (!patientId) {
@@ -52,12 +58,13 @@ export class PrescriptionController {
     return prescriptions;
   }
 
-
   @Post()
+  @UseGuards(AuthGuard)
   create(@Body() createPrescriptionDto: CreatePrescriptionDto) {
     return this.prescriptionService.create(createPrescriptionDto);
   }
   @Post('/save')
+  @UseGuards(AuthGuard)
   async savePrescription(
     @Body()
     prescriptionDto: {
@@ -90,20 +97,21 @@ export class PrescriptionController {
     } catch (error) {
       throw new BadRequestException('Invalid data provided');
     }
-
   }
 
-
   @Get()
+  @UseGuards(AuthGuard)
   async findAll(@Query() query: any): Promise<Prescription[]> {
     return this.prescriptionService.findAll(query);
   }
   @Get(':id')
+  @UseGuards(AuthGuard)
   findOne(@Param('id') id: string) {
     return this.prescriptionService.findOne(id);
   }
 
   @Patch(':id')
+  @UseGuards(AuthGuard)
   update(
     @Param('id') id: string,
     @Body() updatePrescriptionDto: UpdatePrescriptionDto,
@@ -112,21 +120,15 @@ export class PrescriptionController {
   }
 
   @Delete(':id')
+  @UseGuards(AuthGuard)
   remove(@Param('id') id: string) {
     return this.prescriptionService.remove(id);
   }
 
-
-
   @Get('findPrescriptionByDoctorId/:id')
+  @UseGuards(AuthGuard)
   async findPrescriptionByDoctorId(@Param('id') id: string) {
     console.log('from doctor controller', id);
     return this.prescriptionService.findPrescriptionByDoctorId(id);
   }
-
-
-
-
-
-
 }

@@ -8,11 +8,13 @@ export class AdminController {
   constructor(private adminService: AdminService) {}
 
   @Get()
+  @UseGuards(AuthGuard)
   getAdmins() {
     return this.adminService.getAdmins();
   }
 
   @Post('/verifyDoctor/:id')
+  @UseGuards(AuthGuard)
   verifyDoctor(@Param('id') id: string) {
     // console.log('admin controller');
     return this.adminService.verifyDoctor(id);

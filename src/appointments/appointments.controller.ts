@@ -10,21 +10,19 @@ import {
   Patch,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { Types } from 'mongoose';
 import { AppointmentsService } from './appointments.service';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
+import { AuthGuard } from 'src/auth/auth.gaurd';
 
 @Controller('appointments')
 export class AppointmentsController {
   constructor(private appointmentsService: AppointmentsService) {}
-
-  // @Post()
-  // createAppointment(@Body() createAppointmentDto: CreateAppointmentDto) {
-  //   return this.appointmentsService.createAppointment(createAppointmentDto);
-  // }
   @Post('/bookSlot')
+  @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.OK)
   async bookSlot(@Body() createAppointmentDto: CreateAppointmentDto) {
     const { doctorId, patientId, slotId, appointmentDate } =
@@ -48,22 +46,20 @@ export class AppointmentsController {
     }
   }
   @Get()
+  @UseGuards()
   async getAllAppointments(@Query('filter') filter: string): Promise<any[]> {
     const query = filter ? JSON.parse(filter) : {};
     return this.appointmentsService.getAppointments(query);
   }
 
-  // @Get('/getAppointmentsByDoctorId')
-  // async getAppointments(@Query('doctorId') doctorId: string): Promise<any[]> {
-  //   console.log(`Fetching appointments by doctorId : ${doctorId}`);
-  //   return this.appointmentsService.findAppointmentsByDoctorId(doctorId);
-  // }
   @Get('/getAppointmentsByDoctorId')
+  @UseGuards(AuthGuard)
   async getAppointments(@Query('doctorId') doctorId: string): Promise<any[]> {
     console.log(`Fetching appointments by doctorId : ${doctorId}`);
     return this.appointmentsService.findAppointmentsByDoctorId(doctorId);
   }
   @Get(':id')
+  @UseGuards(AuthGuard)
   async getAppointmentById(@Param('id') id: string) {
     const isValid = Types.ObjectId.isValid(id);
     if (!isValid) throw new HttpException('Appointment Not Found', 404);
@@ -72,11 +68,8 @@ export class AppointmentsController {
     return appointment;
   }
 
-  // @Get()
-  // getAppointments() {
-  //   return this.appointmentsService.getAppointments();
-  // }
   @Patch(':id')
+  @UseGuards(AuthGuard)
   async updateAppointment(
     @Param('id') id: string,
     @Body() updateAppointmentDto: UpdateAppointmentDto,
@@ -87,6 +80,7 @@ export class AppointmentsController {
   }
 
   @Delete(':id')
+  @UseGuards(AuthGuard)
   async deleteAppointment(@Param('id') id: string) {
     const isValid = Types.ObjectId.isValid(id);
     if (!isValid) throw new HttpException('Appointment Not Found', 404);
