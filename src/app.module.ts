@@ -73,6 +73,8 @@ import { Patient, PatientSchema } from './schemas/Patient.schema';
 import { HttpModule } from '@nestjs/axios';
 import * as bodyParser from 'body-parser';
 import { PrescriptionModule } from './prescription/prescription.module';
+import { APP_GUARD } from '@nestjs/core';
+
 import { RatingsModule } from './ratings/ratings.module';
 import { ReportsModule } from './reports/reports.module';
 import { ConfigModule } from '@nestjs/config';
@@ -82,6 +84,7 @@ import { AdminModule } from './admin/admin.module';
 import { ContactController } from './contact/contact.controller';
 import { MailService } from './mail/mail.service';
 import { NotificationService } from 'src/services/notificationScheduler'; // Import the NotificationService
+import { AuthGuard } from './auth/auth.gaurd';
 
 @Module({
   imports: [
@@ -113,6 +116,12 @@ import { NotificationService } from 'src/services/notificationScheduler'; // Imp
     AdminModule,
   ],
   controllers: [AppController, ContactController],
-  providers: [AppService, CloudinaryService, MailService, NotificationService], // Add NotificationService here
+  providers: [
+    AppService,
+    CloudinaryService,
+    MailService,
+    NotificationService,
+    { provide: APP_GUARD, useClass: AuthGuard },
+  ], // Add NotificationService here
 })
 export class AppModule {}

@@ -10,9 +10,7 @@ import { UpdatePrescriptionDto } from './dtos/update-prescription.dto';
 import { Doctor } from 'src/schemas/doctor.schema';
 import { Patient } from 'src/schemas/Patient.schema';
 import { Prescription } from 'src/schemas/Prescription.schema'; // Import the model directly
-import { Mode } from 'fs';
 import { Appointment } from 'src/schemas/Appointment.schema';
-import { Type } from 'class-transformer';
 
 @Injectable()
 export class PrescriptionService {
@@ -23,7 +21,7 @@ export class PrescriptionService {
     @InjectModel(Patient.name) private readonly patientModel: Model<Patient>,
     @InjectModel(Appointment.name)
     private readonly appointmentModel: Model<Appointment>,
-  ) { }
+  ) {}
 
   private async validateDoctorAndPatient(
     doctorId: string,
@@ -166,7 +164,6 @@ export class PrescriptionService {
     return result;
   }
 
-
   async findPrescriptionByDoctorId(dId: string) {
     try {
       const doctorId = new Types.ObjectId(dId);
@@ -174,12 +171,11 @@ export class PrescriptionService {
         { $match: { doctorId } },
         {
           $group: {
-            _id: "$patientId",
-            doctorId: { $first: "$doctorId" },
-            prescriptionId: { $first: "$_id" }, // Assuming _id is the prescriptionId
-            patientId: { $first: "$patientId" },
-            patientName: { $first: "$patientName" }, // Add other fields as needed
-
+            _id: '$patientId',
+            doctorId: { $first: '$doctorId' },
+            prescriptionId: { $first: '$_id' }, // Assuming _id is the prescriptionId
+            patientId: { $first: '$patientId' },
+            patientName: { $first: '$patientName' }, // Add other fields as needed
           },
         },
         {
@@ -195,10 +191,11 @@ export class PrescriptionService {
       console.log(JSON.stringify(response));
       return response;
     } catch (error) {
-      throw new Error(`Error finding prescription for Doctor: ${error.message}`);
+      throw new Error(
+        `Error finding prescription for Doctor: ${error.message}`,
+      );
     }
   }
-
 
   async findPrescriptionByPatientIdAndDoctorId(pId: string, dId: string) {
     try {
@@ -206,16 +203,19 @@ export class PrescriptionService {
       const doctorId = new Types.ObjectId(dId);
 
       // Sort by appointmentDate in descending order
-      const response = await this.prescriptionModel.find({
-        patientId,
-        doctorId,
-      }).sort({ appointmentDate: -1 }).exec();
+      const response = await this.prescriptionModel
+        .find({
+          patientId,
+          doctorId,
+        })
+        .sort({ appointmentDate: -1 })
+        .exec();
 
       return response;
     } catch (error) {
-      throw new Error(`Error finding prescription for Patient: ${error.message}`);
+      throw new Error(
+        `Error finding prescription for Patient: ${error.message}`,
+      );
     }
-
   }
 }
-
