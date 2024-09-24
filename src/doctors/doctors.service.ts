@@ -1,12 +1,6 @@
-import {
-  Injectable,
-  ConflictException,
-  NotFoundException,
-  Inject,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import mongoose, { Model, Types } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
-import { CreateDoctorDto } from './dtos/create-doctor.dto';
 import { UpdateDoctorDto } from './dtos/update-doctor.dto';
 import { Doctor } from '../schemas/doctor.schema';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
@@ -20,7 +14,8 @@ import { MailerService } from '@nestjs-modules/mailer';
 import { Rating } from '../schemas/Ratings.schema';
 import { Prescription } from '../schemas/Prescription.schema';
 import * as Twilio from 'twilio';
-
+import { generateAppointmentCancellationEmail } from '../EmailTemplates/appointmnetCamcellationEmailTemplate';
+import { generateAppointmentCancellationSMS } from '../SMS_Templates/appointementCancellationSMS';
 // import { zonedTimeToUtc } from 'date-fns-tz';
 
 @Injectable()
@@ -73,7 +68,7 @@ export class DoctorsService {
       total: totalDoctors,
     };
   }
-  
+
   async getDoctors(): Promise<(Doctor & { avgRating: number })[]> {
     const doctors = await this.doctorModel.find({ isVerified: true }).exec();
     const doctorsWithRatings: (Doctor & { avgRating: number })[] = [];
@@ -87,7 +82,7 @@ export class DoctorsService {
       const avgRating =
         ratings.length > 0
           ? ratings.reduce((acc, rating) => acc + rating.rating, 0) /
-            ratings.length
+          ratings.length
           : 0;
       const doctorObject = doctor.toObject() as Doctor & { avgRating: number };
       doctorObject.avgRating = avgRating;
@@ -197,7 +192,7 @@ export class DoctorsService {
         const avgRating =
           ratings.length > 0
             ? ratings.reduce((acc, rating) => acc + rating.rating, 0) /
-              ratings.length
+            ratings.length
             : 0;
         const doctorObject = doctor.toObject() as Doctor & {
           avgRating: number;
@@ -223,8 +218,25 @@ export class DoctorsService {
     // Delete the corresponding user
     await this.userModel.findByIdAndDelete(doctor.user);
 
+    await this.appointmentModel.findByIdAndDelete();
+
     // Delete the doctor
     await this.doctorModel.findByIdAndDelete(doctorId);
+  }
+
+  async disableDoctor(doctorId: string): Promise<Doctor> {
+
+    const doctor = await this.doctorModel.findById(doctorId);
+    if (!doctor) {
+      throw new NotFoundException(`Doctor with ID ${doctorId} not found`);
+    }
+
+    doctor.isVerified = false;
+    await doctor.save();
+
+    return doctor;
+
+
   }
 
   async verifyDoctor(id: string): Promise<Doctor> {
@@ -416,14 +428,13 @@ export class DoctorsService {
         'sending Appointmnet Cancellation message to :',
         patient.contactNumber,
       );
+      const SMS_Content = generateAppointmentCancellationSMS(
+        patient.name,
+        doctor.name,
+        formattedDate,
+      );
       await this.twilioClient.messages.create({
-        body: `   
-        Dear ${patient.name}
-        Your appointment with Dr. ${doctor.name} scheduled for ${formattedDate} has been cancelled due to unforeseen circumstances. 
-        We apologize for any inconvenience this may cause. 
-        Please contact the hospital management team to reschedule your appointment at your earliest convenience.
-        
-        Thank you for your understanding.`,
+        body: SMS_Content,
         from: process.env.TWILIO_PHONE_NUMBER,
         to: patient.contactNumber,
       });
@@ -442,29 +453,15 @@ export class DoctorsService {
   ): Promise<void> {
     const user = await this.userModel.findById(patient.user);
     if (user) {
+      const emailContent = generateAppointmentCancellationEmail(
+        patient.name,
+        formattedDate,
+        doctor.name,
+      );
       await this.mailerService.sendMail({
         to: user.email,
         subject: 'Appointment Cancellation Notice!',
-        html: `
-          <html>
-            <body>
-              <h1>Dear ${patient.name},</h1>
-              <p>
-                We regret to inform you that your appointment scheduled for ${formattedDate} with Dr. ${doctor.name} has been cancelled due to unforeseen circumstances.
-              </p>
-              <p>
-                We apologize for any inconvenience this may cause. Please contact the hospital management team to reschedule your appointment at your earliest convenience.
-              </p>
-              <p>
-                Thank you for your understanding.
-              </p>
-              <p>
-                Best regards,<br />
-                The Hospital Management Team
-              </p>
-            </body>
-          </html>
-        `,
+        html: emailContent,
       });
     }
   }
@@ -545,41 +542,34 @@ export class DoctorsService {
             month: 'long',
             year: 'numeric',
           });
+          const SMS_Content = generateAppointmentCancellationSMS(
+            patient.name,
+            doctor.name,
+            formattedDate,
+          );
           await this.twilioClient.messages.create({
-            body: `Dear ${patient.name}
-            Your appointment with Dr. ${doctor.name} scheduled for ${formattedDate} has been cancelled due to unforeseen circumstances. 
-            We apologize for any inconvenience this may cause. 
-            Please contact the hospital management team to reschedule your appointment at your earliest convenience.
-            
-            Thank you for your understanding.`,
+            body: SMS_Content,
             from: process.env.TWILIO_PHONE_NUMBER,
             to: patient.contactNumber,
           });
           const user = patient.user;
           if (user) {
+            const appointmentDate = new Date(
+              appointment.appointmentDate,
+            ).toLocaleDateString('en-GB', {
+              day: 'numeric',
+              month: 'long',
+              year: 'numeric',
+            });
+            const emailContent = generateAppointmentCancellationEmail(
+              patient.name,
+              appointmentDate,
+              doctor.name,
+            );
             await this.mailerService.sendMail({
               to: user.email,
               subject: 'Appointment Cancellation Notice!',
-              html: `
-                <html>
-                  <body>
-                    <h1>Dear ${patient.name},</h1>
-                    <p>
-                      We regret to inform you that all appointments scheduled for ${appointment.appointmentDate.toISOString().split('T')[0]} with Dr. ${doctor.name} have been cancelled due to unforeseen circumstances.
-                    </p>
-                    <p>
-                      We apologize for the inconvenience this may cause. Please contact the hospital management team to reschedule your appointment at your earliest convenience.
-                    </p>
-                    <p>
-                      Thank you for your understanding.
-                    </p>
-                    <p>
-                      Best regards,<br />
-                      The Hospital Management Team
-                    </p>
-                  </body>
-                </html>
-              `,
+              html: emailContent,
             });
           }
         }

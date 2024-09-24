@@ -4,7 +4,6 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { CreateUserDto } from './dtos/create-user.dto';
 import { User } from '../schemas/User.schema';
 import mongoose, { Model, Types } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
@@ -12,27 +11,23 @@ import { UpdateUserDto } from './dtos/update-user.dto';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { MailerService } from '@nestjs-modules/mailer';
-import { HttpService } from '@nestjs/axios';
 import { Doctor } from '../schemas/doctor.schema';
-import { CloudinaryService } from '../cloudinary/cloudinary.service';
-import { CreateDoctorDto } from 'src/doctors/dtos/create-doctor.dto';
-import { CreatePatientDto } from 'src/patients/dtos/create-patient.dto';
 import { Patient } from '../schemas/Patient.schema';
 import { CreateUserDoctorDto } from './dtos/create-user-doctor.dto';
 import { CreateUserPatientDto } from './dtos/create-user-patient.dto';
-import { Coordinates } from '../doctors/dtos/coordinates';
 import { CreateUserAdminDto } from './dtos/create-user-admin.dto';
+import { generateDoctorWelcomeEmail } from '../EmailTemplates/welcomeDoctorEmailTemplate';
+import { generatePatientWelcomeEmail } from '../EmailTemplates/welcomePateintEmailTemplate';
+
 @Injectable()
 export class UsersService {
   constructor(
     @InjectModel(User.name) private userModel: Model<User>,
     @InjectModel(Doctor.name) private doctorModel: Model<Doctor>,
     @InjectModel(Patient.name) private patientModel: Model<Patient>,
-    private readonly cloudinaryService: CloudinaryService,
 
     private readonly jwtService: JwtService,
     private readonly mailerService: MailerService,
-    private readonly httpService: HttpService,
   ) {}
   async getUserByEmail(email) {
     try {
@@ -99,17 +94,7 @@ export class UsersService {
         secret: process.env.JwtSecret,
         expiresIn: '1h',
       });
-      console.log(`Toke is ${token}`);
-      const url = `http://localhost:${process.env.PORT}/users/verify-email?token=${token}`;
-      await this.mailerService.sendMail({
-        to: email,
-        subject: 'Email Verification',
-        // template: './verify-email', // Path to your email template
-        // context: {
-        //   url,
-        // },
-        html: `Hello ,<br>Verify your mail by visiting below link : <p>${url}</p>`,
-      });
+
       //till here
       console.log(`Hashing Paswword `);
       const password = await bcrypt.hash(user.password, 10);
@@ -164,32 +149,16 @@ export class UsersService {
       const { email, name, speciality, contactNumber, profilePic } =
         createDoctorDto;
       console.log(email, name, speciality, contactNumber, profilePic);
+      const emailContent = generateDoctorWelcomeEmail(
+        name,
+        speciality,
+        contactNumber,
+      );
 
       await this.mailerService.sendMail({
         to: email,
         subject: 'Welcome to Our Platform!',
-        html: `
-      <html>
-      <body>
-          <h1>Welcome to Our Platform, Dr. ${name}!</h1>
-          <p>We are excited to have you on board as one of our esteemed doctors.</p>
-          <p>Thank you for registering. Your profile has been successfully created.</p>
-          <p>Here are some details about your registration:</p>
-          <ul>
-              <li><strong>Name:</strong> ${name}</li>
-              <li><strong>Specialty:</strong> ${speciality}</li>
-              <li><strong>Contact Number:</strong> ${contactNumber}</li>
-          </ul>
-          <p>Once your details are verified by our admin, you will be added to the list of doctors available to patients.
-          You will receive a notification email once your verification is complete.</p>
-
-          <p>You can check your profile or update your details <a href="${profilePic}">here</a>.</p>
-
-          <p>If you have any questions, feel free to contact us at <a href="mailto:support@example.com">support@example.com</a>.</p>
-          <p>Best regards,<br>The Platform Team</p>
-      </body>
-      </html>
-                  `,
+        html: emailContent,
       });
 
       return newDoctor;
@@ -225,30 +194,15 @@ export class UsersService {
       const { email, name, contactNumber, profilePic } = createPatientDto;
 
       console.log(email, name, contactNumber, profilePic);
-
-      await this.mailerService.sendMail({
+      const emailContent = generatePatientWelcomeEmail(
+        name,
+        email,
+        contactNumber,
+      );
+      this.mailerService.sendMail({
         to: email,
         subject: 'Welcome to Our Platform!',
-        html: `
-      <html>
-      <body>
-          <h1>Welcome to Our Platform, ${name}!</h1>
-          <p>Thank you for registering. Your account has been successfully created.</p>
-          <p>Here are some details about your registration:</p>
-          <ul>
-              <li><strong>Name:</strong> ${name}</li>
-              <li><strong>Email:</strong> ${email}</li>
-              <li><strong>Contact Number:</strong> ${contactNumber}</li>
-                  </ul>
-                  <p>You can now browse and book appointments with our doctors.</p>
-
-                  <p>You can check your profile or update your details <a href="${profilePic}">here</a>.</p>
-                  
-                  <p>If you have any questions, feel free to contact us at <a href="mailto:support@example.com">support@example.com</a>.</p>
-                  <p>Best regards,<br>The Platform Team</p>
-              </body>
-              </html>
-    `,
+        html: emailContent,
       });
 
       return newPatient;

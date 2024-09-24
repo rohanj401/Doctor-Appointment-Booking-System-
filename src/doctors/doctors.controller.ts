@@ -11,51 +11,41 @@ import {
   Patch,
   Post,
   Query,
-  UploadedFiles,
   UseGuards,
-  UseInterceptors,
 } from '@nestjs/common';
 import mongoose from 'mongoose';
-import { CreateDoctorDto } from './dtos/create-doctor.dto';
 import { UpdateDoctorDto } from './dtos/update-doctor.dto';
 import { DoctorsService } from './doctors.service';
-import {
-  AnyFilesInterceptor,
-  FilesInterceptor,
-} from '@nestjs/platform-express';
 import { CancelSlotDto } from './dtos/cancel-slot.dto';
-import { AuthGuard } from 'src/auth/auth.gaurd';
+import { Public } from 'src/auth/decorators/public.decorator';
 
 @Controller('doctors')
 export class DoctorsController {
-  constructor(private doctorsService: DoctorsService) {}
+  constructor(private doctorsService: DoctorsService) { }
 
   @Post('/addAvailability')
-  @UseGuards(AuthGuard)
-  async addDoctorAvailability(
-    @Body() data: any,
-    // @Body('dates') dates: string[],
-    // @Body('timePerSlot') timePerSlot: number,
-  ) {
+  async addDoctorAvailability(@Body() data: any) {
     console.log(data);
     return this.doctorsService.addAvailability(data);
   }
 
   @Post(':id/verify')
-  @UseGuards(AuthGuard)
   async verifyDoctor(@Param('id') id: string) {
     return this.doctorsService.verifyDoctor(id);
   }
 
+  @Post(':id')
+  async disableDoctor(@Param('id') id: string) {
+    return this.doctorsService.disableDoctor(id);
+  }
+
   @Patch('/cancelSlot')
-  @UseGuards(AuthGuard)
   async cancelSlot(@Body() cancelSlotDto: CancelSlotDto): Promise<void> {
     console.log('Cancelling slot ');
     return await this.doctorsService.cancelSlot(cancelSlotDto);
   }
 
   @Patch('/cancelAllSlots')
-  @UseGuards(AuthGuard)
   async cancelAllSlots(@Body() body: { doctorId: string; date: string }) {
     const { doctorId, date } = body;
     console.log('Cancelling all slots');
@@ -70,7 +60,6 @@ export class DoctorsController {
         doctorId,
         parsedDate,
       );
-      console.log(result);
       if (
         result.message === 'Doctor not found' ||
         result.message === 'No availability found for the given date'
@@ -86,9 +75,7 @@ export class DoctorsController {
       );
     }
   }
-
   @Get('/fetchDoctorByUserId/:id')
-  @UseGuards(AuthGuard)
   async fetchDoctorByUserId(@Param('id') id: string) {
     try {
       return this.doctorsService.fetchDoctorByUserId(id);
@@ -98,7 +85,6 @@ export class DoctorsController {
   }
 
   @Get('/getAvailableDates/:id')
-  @UseGuards(AuthGuard)
   async getAvailableDates(@Param('id') id: string) {
     try {
       return await this.doctorsService.fetchAvailableDates(id);
@@ -107,7 +93,6 @@ export class DoctorsController {
     }
   }
   @Get('/getAllDoctors-Admin')
-  @UseGuards(AuthGuard)
   async getDoctorss(
     @Query('status') status: 'all' | 'verified' | 'unverified' = 'all',
     @Query('page') page: number = 1,
@@ -123,7 +108,6 @@ export class DoctorsController {
   }
 
   @Get('getNearByDoctors')
-  @UseGuards(AuthGuard)
   findNearbyDoctors(@Body() data: any) {
     console.log('Finding nearBy Doctors');
     return this.doctorsService.findNearbyDoctors(data);
@@ -138,15 +122,14 @@ export class DoctorsController {
     return doctor;
   }
 
+  @Public()
   @Get()
-  // @UseGuards(AuthGuard)
   getDoctors() {
     console.log('Fetching All Doctors from the controller');
     return this.doctorsService.getDoctors();
   }
 
   @Patch(':id')
-  @UseGuards(AuthGuard)
   updateDoctor(
     @Param('id') id: string,
     @Body() updateDoctorDto: UpdateDoctorDto,
@@ -157,7 +140,6 @@ export class DoctorsController {
   }
 
   @Delete(':id')
-  @UseGuards(AuthGuard)
   async deleteDoctor(@Param('id') id: string): Promise<void> {
     return this.doctorsService.deleteDoctor(id);
   }
@@ -171,26 +153,6 @@ export class DoctorsController {
     @Query('radius') radius?: string, // Accept radius as string for easier parsing
     @Query('location') location?: [number, number], // Accept location as string for easier parsing
   ) {
-    console.log('Searching doctors controller');
-    console.log(
-      'from controller',
-      state,
-      city,
-      specialty,
-      gender,
-      radius,
-      location,
-    );
-    console.log(
-      'from controller',
-      state,
-      city,
-      specialty,
-      gender,
-      radius,
-      location,
-    );
-
     // Validate and parse radius
     const radiusInKm = radius ? parseFloat(radius) : undefined;
     if (radius && isNaN(radiusInKm)) {

@@ -7,12 +7,10 @@ import {
 import { Model, ObjectId, Types } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { Appointment } from 'src/schemas/Appointment.schema';
-import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 import { Doctor } from 'src/schemas/doctor.schema';
 import { Patient } from 'src/schemas/Patient.schema';
 import { Slot } from 'src/schemas/Slot.schema';
-import { time } from 'console';
 
 @Injectable()
 export class AppointmentsService {
@@ -21,7 +19,7 @@ export class AppointmentsService {
     @InjectModel(Doctor.name) private readonly doctorModel: Model<Doctor>,
     @InjectModel(Patient.name) private readonly patientModel: Model<Patient>,
     @InjectModel(Slot.name) private readonly slotModel: Model<Slot>,
-  ) { }
+  ) {}
   async bookSlot(
     doctorId: Types.ObjectId,
     patientId: Types.ObjectId,

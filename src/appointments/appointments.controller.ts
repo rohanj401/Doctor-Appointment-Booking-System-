@@ -17,6 +17,7 @@ import { AppointmentsService } from './appointments.service';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 import { AuthGuard } from 'src/auth/auth.gaurd';
+import { Public } from 'src/auth/decorators/public.decorator';
 
 @Controller('appointments')
 export class AppointmentsController {
@@ -45,21 +46,19 @@ export class AppointmentsController {
       return { message: error.message };
     }
   }
+  @Public()
   @Get()
-  @UseGuards()
   async getAllAppointments(@Query('filter') filter: string): Promise<any[]> {
     const query = filter ? JSON.parse(filter) : {};
     return this.appointmentsService.getAppointments(query);
   }
 
   @Get('/getAppointmentsByDoctorId')
-  @UseGuards(AuthGuard)
   async getAppointments(@Query('doctorId') doctorId: string): Promise<any[]> {
     console.log(`Fetching appointments by doctorId : ${doctorId}`);
     return this.appointmentsService.findAppointmentsByDoctorId(doctorId);
   }
   @Get(':id')
-  @UseGuards(AuthGuard)
   async getAppointmentById(@Param('id') id: string) {
     const isValid = Types.ObjectId.isValid(id);
     if (!isValid) throw new HttpException('Appointment Not Found', 404);
@@ -69,7 +68,6 @@ export class AppointmentsController {
   }
 
   @Patch(':id')
-  @UseGuards(AuthGuard)
   async updateAppointment(
     @Param('id') id: string,
     @Body() updateAppointmentDto: UpdateAppointmentDto,
@@ -80,7 +78,6 @@ export class AppointmentsController {
   }
 
   @Delete(':id')
-  @UseGuards(AuthGuard)
   async deleteAppointment(@Param('id') id: string) {
     const isValid = Types.ObjectId.isValid(id);
     if (!isValid) throw new HttpException('Appointment Not Found', 404);

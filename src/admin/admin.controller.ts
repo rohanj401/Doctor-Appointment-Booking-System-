@@ -2,6 +2,7 @@ import { Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { get } from 'http';
 import { AdminService } from './admin.service';
 import { AuthGuard } from 'src/auth/auth.gaurd';
+import { AdminGuard } from 'guards/admin.guard';
 
 @Controller('admin')
 export class AdminController {
