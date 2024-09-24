@@ -164,12 +164,12 @@ export class UsersService {
       return newDoctor;
     } catch (error) {
       if (error.code === 11000) {
+        console.log(error); // Log the error for debugging purposes
         throw new ConflictException(
-          // 'A doctor with this mobile number or email already exists.',
-          console.log(error),
+          'A doctor with this mobile number or email already exists.',
         );
       }
-      throw error;
+      throw error; // Rethrow other errors
     }
   }
 

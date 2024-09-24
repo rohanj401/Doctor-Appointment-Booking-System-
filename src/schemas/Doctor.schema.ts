@@ -2,6 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 import { ClinicDetails } from '../doctors/dtos/clinicDetails';
 import { Availability, AvailabilitySchema } from './Availability.schema';
+import { ApiProperty } from '@nestjs/swagger';
 
 @Schema()
 export class Doctor extends Document {
@@ -50,6 +51,13 @@ export class Doctor extends Document {
   @Prop({ type: ClinicDetails, required: true })
   clinicDetails: ClinicDetails;
 
+  @ApiProperty({
+    type: 'object',
+    properties: {
+      type: { type: 'string', enum: ['Point'] },
+      coordinates: { type: 'array', items: { type: 'number' } },
+    },
+  })
   @Prop({
     type: {
       type: String,
