@@ -21,7 +21,7 @@ import { Public } from 'src/auth/decorators/public.decorator';
 
 @Controller('doctors')
 export class DoctorsController {
-  constructor(private doctorsService: DoctorsService) {}
+  constructor(private doctorsService: DoctorsService) { }
 
   @Post('/addAvailability')
   async addDoctorAvailability(@Body() data: any) {
@@ -32,6 +32,11 @@ export class DoctorsController {
   @Post(':id/verify')
   async verifyDoctor(@Param('id') id: string) {
     return this.doctorsService.verifyDoctor(id);
+  }
+
+  @Post(':id')
+  async disableDoctor(@Param('id') id: string) {
+    return this.doctorsService.disableDoctor(id);
   }
 
   @Patch('/cancelSlot')

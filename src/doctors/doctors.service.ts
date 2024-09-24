@@ -82,7 +82,7 @@ export class DoctorsService {
       const avgRating =
         ratings.length > 0
           ? ratings.reduce((acc, rating) => acc + rating.rating, 0) /
-            ratings.length
+          ratings.length
           : 0;
       const doctorObject = doctor.toObject() as Doctor & { avgRating: number };
       doctorObject.avgRating = avgRating;
@@ -192,7 +192,7 @@ export class DoctorsService {
         const avgRating =
           ratings.length > 0
             ? ratings.reduce((acc, rating) => acc + rating.rating, 0) /
-              ratings.length
+            ratings.length
             : 0;
         const doctorObject = doctor.toObject() as Doctor & {
           avgRating: number;
@@ -218,8 +218,25 @@ export class DoctorsService {
     // Delete the corresponding user
     await this.userModel.findByIdAndDelete(doctor.user);
 
+    await this.appointmentModel.findByIdAndDelete();
+
     // Delete the doctor
     await this.doctorModel.findByIdAndDelete(doctorId);
+  }
+
+  async disableDoctor(doctorId: string): Promise<Doctor> {
+
+    const doctor = await this.doctorModel.findById(doctorId);
+    if (!doctor) {
+      throw new NotFoundException(`Doctor with ID ${doctorId} not found`);
+    }
+
+    doctor.isVerified = false;
+    await doctor.save();
+
+    return doctor;
+
+
   }
 
   async verifyDoctor(id: string): Promise<Doctor> {

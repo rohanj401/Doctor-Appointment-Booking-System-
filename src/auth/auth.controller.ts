@@ -14,10 +14,12 @@ import { AuthService } from './auth.service';
 import { AuthGuard } from './auth.gaurd';
 import { ForgotPasswordDto } from './dtos/forgot-password.dto';
 import { ResetPasswordDto } from './dtos/reset-password.dto';
+import { Public } from './decorators/public.decorator';
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(private authService: AuthService) { }
   @HttpCode(HttpStatus.OK)
+  @Public()
   @Post('/login')
   signIn(@Body() signInDto: signInDto) {
     console.log('inside auth controller');
@@ -25,7 +27,6 @@ export class AuthController {
   }
 
   @Get('/profile')
-  @UseGuards(AuthGuard)
   getProfile(@Request() req) {
     console.log(`req.user :${req.user}`);
     return req.user;

@@ -5,13 +5,17 @@ import { Patient } from '../schemas/Patient.schema';
 import { CreatePatientDto } from './dtos/create-patient.dto';
 import { UpdatePatientDto } from './dtos/update-patient.dto';
 import { User } from '../schemas/User.schema';
+import { Prescription } from 'src/schemas/Prescription.schema';
+import { Appointment } from 'src/schemas/Appointment.schema';
 
 @Injectable()
 export class PatientsService {
   constructor(
     @InjectModel(Patient.name) private patientModel: Model<Patient>,
     @InjectModel(User.name) private userModel: Model<User>,
-  ) {}
+    @InjectModel(Prescription.name) private prescriptionModel: Model<Prescription>,
+    @InjectModel(Appointment.name) private appointmentModel: Model<Appointment>,
+  ) { }
 
   createPatient(createPatientDto: CreatePatientDto) {
     const newPatient = new this.patientModel(createPatientDto);
@@ -45,6 +49,26 @@ export class PatientsService {
     return patient;
   }
 
+  // async deletePatient(patientId: string): Promise<void> {
+  //   const patient = await this.patientModel.findById(patientId);
+
+  //   if (!patient) {
+  //     throw new NotFoundException('Patient not found');
+  //   }
+
+  //   console.log('Deleting patient with ID:', patientId);
+  //   await this.appointmentModel.deleteMany({ patient: patientId });
+
+  //   await this.prescriptionModel.deleteMany({ patientId: patientId });
+  //   await this.patientModel.findByIdAndDelete(patientId);
+
+  //   // Delete the corresponding user
+  //   await this.userModel.findByIdAndDelete(patient.user);
+
+  //   // Delete the patient
+
+  // }
+
   async deletePatient(patientId: string): Promise<void> {
     const patient = await this.patientModel.findById(patientId);
 
@@ -52,10 +76,18 @@ export class PatientsService {
       throw new NotFoundException('Patient not found');
     }
 
-    // Delete the corresponding user
-    await this.userModel.findByIdAndDelete(patient.user);
+    const patientIdObject = new mongoose.Types.ObjectId(patientId);
+
+    // Delete appointments associated with the patient
+    await this.appointmentModel.deleteMany({ patient: patientIdObject });
+
+    // Delete prescriptions associated with the patient
+    await this.prescriptionModel.deleteMany({ patientId: patientIdObject });
 
     // Delete the patient
     await this.patientModel.findByIdAndDelete(patientId);
+
+    // Delete the corresponding user
+    await this.userModel.findByIdAndDelete(patient.user);
   }
 }
