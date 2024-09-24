@@ -29,12 +29,14 @@ import { AuthGuard } from 'src/auth/auth.gaurd';
 export class UsersController {
   constructor(private usersService: UsersService) {}
   @Post('/doctor')
+  @UseGuards(AuthGuard)
   createUserDoctor(@Body() createUserDoctorDto: CreateUserDoctorDto) {
     console.log(` document  is ${JSON.stringify(createUserDoctorDto)}`);
     return this.usersService.createUserDoctor(createUserDoctorDto);
   }
 
   @Post('/patient')
+  @UseGuards(AuthGuard)
   createUserPatient(@Body() createUserPatientDto: CreateUserPatientDto) {
     console.log(` document  is ${JSON.stringify(createUserPatientDto)}`);
     return this.usersService.createUserPatient(createUserPatientDto);
@@ -47,12 +49,14 @@ export class UsersController {
   }
 
   @Get('/getUserByEmail')
+  @UseGuards(AuthGuard)
   async getUserByEmail(@Query('email') email: string) {
     console.log('email is ' + email);
     return this.usersService.getUserByEmail(email);
   }
 
   @Get('verify-email')
+  @UseGuards(AuthGuard)
   async verifyEmail(@Query('token') token: string, @Res() res: Response) {
     console.log(`token is ${token}`);
 
@@ -96,6 +100,7 @@ export class UsersController {
   //admin creation----------
 
   @Post('/admin')
+  @UseGuards(AuthGuard)
   async createUserAdmin(@Body() createUserAdminDto: CreateUserAdminDto) {
     return this.usersService.createUserAdmin(createUserAdminDto);
   }
