@@ -19,25 +19,25 @@ import { AuthGuard } from 'src/auth/auth.gaurd';
 export class PatientsController {
   constructor(private patientsService: PatientsService) {}
   @Post()
-  @UseGuards(AuthGuard)
+  // @UseGuards(AuthGuard)
   createUser(@Body() createpatientDto: CreatePatientDto) {
     console.log(createpatientDto);
     return this.patientsService.createPatient(createpatientDto);
   }
 
   @Get('/allPatients')
-  @UseGuards(AuthGuard)
+  // @UseGuards(AuthGuard)
   getPatients() {
     console.log('Fetching All Patients');
     return this.patientsService.getPatients();
   }
   @Get('/fetchPatientByUserId/:id')
-  @UseGuards(AuthGuard)
+  // @UseGuards(AuthGuard)
   async fetchPatientByUserId(@Param('id') id: string) {
     return this.patientsService.fetchPatientByUserId(id);
   }
   @Get(':id')
-  @UseGuards(AuthGuard)
+  // @UseGuards(AuthGuard)
   async getPatientById(@Param('id') id: string) {
     const isValid = mongoose.Types.ObjectId.isValid(id);
     if (!isValid) throw new HttpException('User Not Found', 404);
@@ -48,7 +48,7 @@ export class PatientsController {
   }
 
   @Patch(':id')
-  @UseGuards(AuthGuard)
+  // @UseGuards(AuthGuard)
   updatePatient(
     @Param('id') id: string,
     @Body() updatePatientDto: UpdatePatientDto,
@@ -57,8 +57,9 @@ export class PatientsController {
     if (!isValid) throw new HttpException('User Not Found', 404);
     return this.patientsService.updateUser(id, updatePatientDto);
   }
+
   @Delete(':id')
-  @UseGuards(AuthGuard)
+  // @UseGuards(AuthGuard)
   async deletePatient(@Param('id') id: string): Promise<void> {
     return this.patientsService.deletePatient(id);
   }

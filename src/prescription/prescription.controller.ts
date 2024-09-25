@@ -17,9 +17,7 @@ import { CreatePrescriptionDto } from './dtos/create-prescription.dto';
 import { UpdatePrescriptionDto } from './dtos/update-prescription.dto';
 import { Types } from 'mongoose';
 
-import { from } from 'rxjs';
-import { query } from 'express';
-import { Medicine, Prescription } from 'src/schemas/Prescription.schema';
+import { Prescription } from 'src/schemas/Prescription.schema';
 import { AuthGuard } from 'src/auth/auth.gaurd';
 
 @Controller('prescriptions')
@@ -27,7 +25,6 @@ export class PrescriptionController {
   constructor(private readonly prescriptionService: PrescriptionService) {}
 
   @Get('/findPrescriptionByPatientAndDoctor')
-  @UseGuards(AuthGuard)
   async findPrescriptionByPatientAndDoctor(
     @Query('patientId') patientId: string,
     @Query('doctorId') doctorId: string,
@@ -44,7 +41,6 @@ export class PrescriptionController {
   }
 
   @Get('/byPatient')
-  @UseGuards(AuthGuard)
   async getPrescriptionsByPatientId(@Query('patientId') patientId: string) {
     console.log(patientId);
     if (!patientId) {
@@ -59,12 +55,11 @@ export class PrescriptionController {
   }
 
   @Post()
-  @UseGuards(AuthGuard)
   create(@Body() createPrescriptionDto: CreatePrescriptionDto) {
     return this.prescriptionService.create(createPrescriptionDto);
   }
+
   @Post('/save')
-  @UseGuards(AuthGuard)
   async savePrescription(
     @Body()
     prescriptionDto: {
@@ -100,18 +95,15 @@ export class PrescriptionController {
   }
 
   @Get()
-  @UseGuards(AuthGuard)
   async findAll(@Query() query: any): Promise<Prescription[]> {
     return this.prescriptionService.findAll(query);
   }
   @Get(':id')
-  @UseGuards(AuthGuard)
   findOne(@Param('id') id: string) {
     return this.prescriptionService.findOne(id);
   }
 
   @Patch(':id')
-  @UseGuards(AuthGuard)
   update(
     @Param('id') id: string,
     @Body() updatePrescriptionDto: UpdatePrescriptionDto,
@@ -120,13 +112,11 @@ export class PrescriptionController {
   }
 
   @Delete(':id')
-  @UseGuards(AuthGuard)
   remove(@Param('id') id: string) {
     return this.prescriptionService.remove(id);
   }
 
   @Get('findPrescriptionByDoctorId/:id')
-  @UseGuards(AuthGuard)
   async findPrescriptionByDoctorId(@Param('id') id: string) {
     console.log('from doctor controller', id);
     return this.prescriptionService.findPrescriptionByDoctorId(id);

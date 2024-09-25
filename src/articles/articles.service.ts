@@ -9,7 +9,6 @@ import { Model, Types } from 'mongoose';
 import { CreateArticleDto } from './dto/create-article.dto';
 import { Article, ArticleDocument } from '../schemas/Articles.schema';
 import { Doctor } from '../schemas/doctor.schema';
-import { Type } from 'class-transformer';
 
 @Injectable()
 export class ArticlesService {
