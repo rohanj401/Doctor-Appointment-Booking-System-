@@ -18,6 +18,7 @@ import { UpdateDoctorDto } from './dtos/update-doctor.dto';
 import { DoctorsService } from './doctors.service';
 import { CancelSlotDto } from './dtos/cancel-slot.dto';
 import { Public } from 'src/auth/decorators/public.decorator';
+import { AdminGuard } from 'src/auth/guards/admin.guard';
 
 @Controller('doctors')
 export class DoctorsController {
@@ -29,12 +30,13 @@ export class DoctorsController {
     return this.doctorsService.addAvailability(data);
   }
 
+  @UseGuards(AdminGuard)
   @Post(':id/verify')
   async verifyDoctor(@Param('id') id: string) {
     return this.doctorsService.verifyDoctor(id);
   }
 
-  @Post(':id')
+  @Patch('/disable/:id')
   async disableDoctor(@Param('id') id: string) {
     return this.doctorsService.disableDoctor(id);
   }
