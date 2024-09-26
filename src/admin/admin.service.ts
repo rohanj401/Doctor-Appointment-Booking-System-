@@ -20,18 +20,6 @@ export class AdminService {
     return this.adminModel.find().exec();
   }
 
-  // async fetchAdminByUserId(userId: string) {
-  //     console.log('getting patient by userId');
-  //     const patient = await this.adminModel
-  //         .findOne({ user: new mongoose.Types.ObjectId(userId) })
-  //         .exec();
-
-  //     if (!patient) {
-  //         throw new NotFoundException(`Admin with user ID ${userId} not found`);
-  //     }
-  //     return Admin;
-  // }
-
   async verifyDoctor(id: string): Promise<Doctor> {
     const doctor = await this.doctorModel.findById(id);
     if (!doctor) {

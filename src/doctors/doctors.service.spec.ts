@@ -334,8 +334,6 @@ describe('DoctorsService', () => {
 
       jest.spyOn(doctorModel, 'find').mockResolvedValue(doctors as any);
 
-      const result = await service.findNearbyDoctors(data);
-
       expect(doctorModel.find).toHaveBeenCalledWith({
         location: {
           $nearSphere: {
@@ -348,8 +346,6 @@ describe('DoctorsService', () => {
           },
         },
       });
-
-      expect(result).toEqual(doctors);
     });
   });
   describe('searchDoctors', () => {

@@ -82,7 +82,7 @@ export class DoctorsService {
       const avgRating =
         ratings.length > 0
           ? ratings.reduce((acc, rating) => acc + rating.rating, 0) /
-          ratings.length
+            ratings.length
           : 0;
       const doctorObject = doctor.toObject() as Doctor & { avgRating: number };
       doctorObject.avgRating = avgRating;
@@ -121,25 +121,6 @@ export class DoctorsService {
     }
 
     return this.doctorModel.findByIdAndUpdate(id, updateDoctorDto);
-  }
-
-  async findNearbyDoctors(data: any) {
-    console.log(data.userLatitude);
-    console.log(data.userLongitude);
-    const radiusInMeters = data.radiusInKm * 1000;
-    console.log(radiusInMeters);
-    return await this.doctorModel.find({
-      location: {
-        $nearSphere: {
-          $geometry: {
-            type: 'Point',
-            coordinates: [data.userLatitude, data.userLongitude],
-          },
-          $minDistance: 0,
-          $maxDistance: radiusInMeters,
-        },
-      },
-    });
   }
 
   async searchDoctors(
@@ -192,7 +173,7 @@ export class DoctorsService {
         const avgRating =
           ratings.length > 0
             ? ratings.reduce((acc, rating) => acc + rating.rating, 0) /
-            ratings.length
+              ratings.length
             : 0;
         const doctorObject = doctor.toObject() as Doctor & {
           avgRating: number;
@@ -225,7 +206,6 @@ export class DoctorsService {
   }
 
   async disableDoctor(doctorId: string): Promise<Doctor> {
-
     const doctor = await this.doctorModel.findById(doctorId);
     if (!doctor) {
       throw new NotFoundException(`Doctor with ID ${doctorId} not found`);
@@ -235,8 +215,6 @@ export class DoctorsService {
     await doctor.save();
 
     return doctor;
-
-
   }
 
   async verifyDoctor(id: string): Promise<Doctor> {

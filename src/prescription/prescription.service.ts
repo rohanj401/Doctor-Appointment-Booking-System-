@@ -93,17 +93,6 @@ export class PrescriptionService {
     return res;
   }
 
-  async create(
-    createPrescriptionDto: CreatePrescriptionDto,
-  ): Promise<Prescription> {
-    const { doctor, patient } = createPrescriptionDto;
-
-    await this.validateDoctorAndPatient(doctor, patient);
-
-    const newPrescription = new this.prescriptionModel(createPrescriptionDto);
-    return newPrescription.save();
-  }
-
   async findAll(query: any): Promise<Prescription[]> {
     const filter: any = {};
 
