@@ -7,7 +7,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { Reflector } from '@nestjs/core';
 import { Request } from 'express';
-import { IS_PUBLIC_KEY } from './decorators/public.decorator'; // Adjust path if needed
+import { IS_PUBLIC_KEY } from './decorators/public.decorator';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -48,6 +48,7 @@ export class AuthGuard implements CanActivate {
 
     const [type, token] = authorizationHeader.split(' ');
     if (type !== 'Bearer') return undefined;
+    console.log(token);
     return token;
   }
 }

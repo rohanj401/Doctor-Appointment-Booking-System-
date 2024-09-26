@@ -7,15 +7,18 @@ import { UpdatePatientDto } from './dtos/update-patient.dto';
 import { User } from '../schemas/User.schema';
 import { Prescription } from 'src/schemas/Prescription.schema';
 import { Appointment } from 'src/schemas/Appointment.schema';
+import { Doctor } from 'src/schemas/doctor.schema';
 
 @Injectable()
 export class PatientsService {
   constructor(
     @InjectModel(Patient.name) private patientModel: Model<Patient>,
     @InjectModel(User.name) private userModel: Model<User>,
-    @InjectModel(Prescription.name) private prescriptionModel: Model<Prescription>,
+    @InjectModel(Prescription.name)
+    private prescriptionModel: Model<Prescription>,
     @InjectModel(Appointment.name) private appointmentModel: Model<Appointment>,
-  ) { }
+    @InjectModel(Doctor.name) private doctorModel: Model<Doctor>,
+  ) {}
 
   createPatient(createPatientDto: CreatePatientDto) {
     const newPatient = new this.patientModel(createPatientDto);
@@ -77,7 +80,39 @@ export class PatientsService {
     }
 
     const patientIdObject = new mongoose.Types.ObjectId(patientId);
+    const appointments = await this.appointmentModel.find({
+      patient: patientIdObject,
+      status: 'accepted',
+    });
 
+    if (appointments.length > 0) {
+      for (const appointment of appointments) {
+        const { doctor, slot } = appointment; // Assuming `doctor` and `slot` are stored in the appointment model
+
+        const doctorObjectId = new mongoose.Types.ObjectId(doctor);
+        const slotObjectId = new mongoose.Types.ObjectId(slot);
+
+        // Update the slot status to 'available' in the doctor's availability
+        const isoDate = appointment.appointmentDate.toISOString().split('T')[0]; // Extract ISO date from appointmentDate
+        console.log('Date is ', isoDate);
+        await this.doctorModel.updateOne(
+          {
+            _id: doctorObjectId,
+            'availability.date': isoDate, // Match the correct date
+            'availability.slots._id': slotObjectId, // Match the correct slot
+          },
+          {
+            $set: {
+              'availability.$.slots.$[slot].status': 'available', // Set the slot status to 'available'
+            },
+          },
+          {
+            arrayFilters: [{ 'slot._id': slotObjectId }],
+            multi: true, // Ensure multi-slot updates if required
+          },
+        );
+      }
+    }
     // Delete appointments associated with the patient
     await this.appointmentModel.deleteMany({ patient: patientIdObject });
 

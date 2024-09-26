@@ -14,30 +14,29 @@ import { CreatePatientDto } from './dtos/create-patient.dto';
 import mongoose from 'mongoose';
 import { UpdatePatientDto } from './dtos/update-patient.dto';
 import { AuthGuard } from 'src/auth/auth.gaurd';
+import { Public } from 'src/auth/decorators/public.decorator';
+import { Roles } from 'src/auth/decorators/roles.decorator';
+import { Role } from 'src/auth/guards/role.enum';
 
 @Controller('patients')
 export class PatientsController {
   constructor(private patientsService: PatientsService) {}
   @Post()
-  // @UseGuards(AuthGuard)
   createUser(@Body() createpatientDto: CreatePatientDto) {
     console.log(createpatientDto);
     return this.patientsService.createPatient(createpatientDto);
   }
 
   @Get('/allPatients')
-  // @UseGuards(AuthGuard)
   getPatients() {
     console.log('Fetching All Patients');
     return this.patientsService.getPatients();
   }
   @Get('/fetchPatientByUserId/:id')
-  // @UseGuards(AuthGuard)
   async fetchPatientByUserId(@Param('id') id: string) {
     return this.patientsService.fetchPatientByUserId(id);
   }
   @Get(':id')
-  // @UseGuards(AuthGuard)
   async getPatientById(@Param('id') id: string) {
     const isValid = mongoose.Types.ObjectId.isValid(id);
     if (!isValid) throw new HttpException('User Not Found', 404);
@@ -48,7 +47,7 @@ export class PatientsController {
   }
 
   @Patch(':id')
-  // @UseGuards(AuthGuard)
+  @Roles(Role.Patient)
   updatePatient(
     @Param('id') id: string,
     @Body() updatePatientDto: UpdatePatientDto,
@@ -58,8 +57,9 @@ export class PatientsController {
     return this.patientsService.updateUser(id, updatePatientDto);
   }
 
+  @Public()
+  @Roles(Role.Admin, Role.Patient)
   @Delete(':id')
-  // @UseGuards(AuthGuard)
   async deletePatient(@Param('id') id: string): Promise<void> {
     return this.patientsService.deletePatient(id);
   }

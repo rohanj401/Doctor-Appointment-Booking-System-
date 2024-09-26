@@ -25,7 +25,6 @@ export class UsersService {
     @InjectModel(User.name) private userModel: Model<User>,
     @InjectModel(Doctor.name) private doctorModel: Model<Doctor>,
     @InjectModel(Patient.name) private patientModel: Model<Patient>,
-
     private readonly jwtService: JwtService,
     private readonly mailerService: MailerService,
   ) {}
@@ -48,23 +47,6 @@ export class UsersService {
     const userr = await this.getUserByEmail(user.email);
     const { email, password, role, ...otherData } = createUserDto;
     if (!userr) {
-      //addedfor email verification
-      // const payload = { email: user.email };
-      // const token = this.jwtService.sign(payload, {
-      //   secret: process.env.JwtSecret,
-      //   expiresIn: '1h',
-      // });
-      // console.log(`Toke is ${token}`);
-      // const url = `http://localhost:${process.env.NEXT_PORT}/users/verify-email?token=${token}`;
-      // await this.mailerService.sendMail({
-      //   to: email,
-      //   subject: 'Email Verification',
-      //   // template: './verify-email', // Path to your email template
-      //   // context: {
-      //   //   url,
-      //   // },
-      //   html: `Hello ,<br>Please Visit Below Link to Verify : <p>${url}</p>`,
-      // });
       console.log(`Hashing Paswword `);
       const password = await bcrypt.hash(user.password, 10);
       console.log('Paswword Hashed ');
@@ -190,7 +172,6 @@ export class UsersService {
       await newPatient.save();
 
       //sending mail---------------------------
-
       const { email, name, contactNumber, profilePic } = createPatientDto;
 
       console.log(email, name, contactNumber, profilePic);
