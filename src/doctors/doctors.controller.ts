@@ -49,6 +49,23 @@ export class DoctorsController {
     return await this.doctorsService.cancelSlot(cancelSlotDto);
   }
 
+  @Patch('/updateRequest')
+  @Roles(Role.Doctor, Role.Admin)
+  async updateRequest(
+    @Body() // doctor: any,
+    doctor: {
+      _id: string;
+      name: string;
+      email: string;
+      speciality: string;
+      qualification: string;
+      documentLink: string;
+    },
+  ) {
+    console.log('Received doctor data:', doctor);
+    console.log('doctor-cont', doctor);
+    return await this.doctorsService.updateQualificationRequest(doctor);
+  }
   @Patch('/cancelAllSlots')
   @Roles(Role.Doctor)
   async cancelAllSlots(@Body() body: { doctorId: string; date: string }) {

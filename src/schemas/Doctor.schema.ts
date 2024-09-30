@@ -76,6 +76,9 @@ export class Doctor extends Document {
 
   @Prop({ type: [AvailabilitySchema], required: true })
   availability: Availability[];
+
+  @Prop({ default: false, required: false })
+  isVerifiedUpdatedQulaification: boolean;
 }
 
 export const DoctorSchema = SchemaFactory.createForClass(Doctor);

@@ -22,6 +22,7 @@ import { AppointmentsService } from 'src/appointments/appointments.service';
 import { PatientsService } from 'src/patients/patients.service';
 import { UsersService } from 'src/users/users.service';
 import { RatingsService } from 'src/ratings/ratings.service';
+import { generateDoctorQualificationUpdateEmail } from 'src/EmailTemplates/verifyQualificationUpdateEmaillTemplate';
 // import { zonedTimeToUtc } from 'date-fns-tz';
 
 @Injectable()
@@ -200,6 +201,47 @@ export class DoctorsService {
     await doctor.save();
 
     return doctor;
+  }
+  async updateQualificationRequest(doctor: any) {
+    //field added
+    try {
+      console.log('Doctor is :', doctor._id);
+      const doctorr = await this.doctorModel.findById(doctor._id);
+      if (!doctorr) {
+        return new NotFoundException(`Doctor with id ${doctor._id} not found`);
+      }
+      doctorr.isVerifiedUpdatedQulaification = true;
+      doctorr.save();
+      const emailContent = generateDoctorQualificationUpdateEmail(
+        doctor.doctorName,
+        doctor.email,
+        doctor.speciality,
+        doctor.qualification,
+        doctor.documentLink,
+      );
+      console.log(emailContent);
+      const result = await this.mailerService.sendMail({
+        to: process.env.USER,
+        from: doctor.email,
+        subject: 'Update Qualification',
+        html: emailContent,
+      });
+      try {
+        await this.mailerService.sendMail({
+          to: doctor.email,
+          subject: 'Update Qualification',
+          html: emailContent,
+        });
+      } catch (error) {
+        console.error('Error sending email:', error);
+        // Handle the error or throw a custom exception here
+      }
+      return doctorr;
+    } catch (error) {
+      console.error('Error updating qualification request:', error);
+      throw new Error('Error updating qualification request');
+    }
+    //mail
   }
 
   async verifyDoctor(id: string): Promise<Doctor> {
