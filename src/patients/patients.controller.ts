@@ -19,7 +19,7 @@ import { Role } from 'src/auth/guards/role.enum';
 
 @Controller('patients')
 export class PatientsController {
-  constructor(private patientsService: PatientsService) {}
+  constructor(private patientsService: PatientsService) { }
   @Post()
   createUser(@Body() createpatientDto: CreatePatientDto) {
     return this.patientsService.createPatient(createpatientDto);
@@ -57,6 +57,7 @@ export class PatientsController {
   @Roles(Role.Admin, Role.Patient)
   @Delete(':id')
   async deletePatient(@Param('id') id: string): Promise<void> {
+    console.log('Deleting Patient :', id);
     return this.patientsService.deletePatient(id);
   }
 }

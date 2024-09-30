@@ -64,7 +64,7 @@ export class DoctorsService {
 
     const [doctors, totalDoctors] = await Promise.all([
       this.doctorModel
-        .find(query)
+        .find(query, "name profilePic yearOfRegistration speciality")
         .skip((page - 1) * pageSize)
         .limit(pageSize)
         .exec(),
@@ -78,7 +78,8 @@ export class DoctorsService {
   }
 
   async getDoctors(): Promise<(Doctor & { avgRating: number })[]> {
-    const doctors = await this.doctorModel.find({ isVerified: true }).exec();
+    // const doctors = await this.doctorModel.find({ isVerified: true }).exec();
+    const doctors = await this.doctorModel.find({ isVerified: true }, "name speciality isVerified profilePic contactNumber").exec();
     const doctorsWithRatings: (Doctor & { avgRating: number })[] = [];
 
     for (const doctor of doctors) {
@@ -96,8 +97,10 @@ export class DoctorsService {
   }
 
   async getDoctorById(id: string): Promise<Doctor> {
-    console.log('doctorId', id);
-    const doctor = await this.doctorModel.findById(id);
+
+    const doctor = await this.doctorModel.findById(id)
+      .select('name speciality qualification registrationNumber profilePic contactNumber bio document yearOfRegistration stateMedicalCouncil clinicDetails availability');
+
     if (!doctor) {
       throw new NotFoundException(`Doctor with ID "${id}" not found`);
     }
@@ -230,8 +233,10 @@ export class DoctorsService {
     const timePerSlot = data.timePerSlot;
     const newAvailabilityPromises = data.dates.map((date: string) => {
       const slots = this.generateSlotsForDay(date, timePerSlot, doctor);
+      // return;
       return this.availabilityModel.create({ date, slots });
     });
+
 
     const newAvailability = await Promise.all(newAvailabilityPromises);
 

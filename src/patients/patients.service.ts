@@ -27,7 +27,7 @@ export class PatientsService {
     private readonly apppointmentsService: AppointmentsService,
     @Inject(forwardRef(() => DoctorsService))
     private readonly doctorsService: DoctorsService,
-  ) {}
+  ) { }
 
   createPatient(createPatientDto: CreatePatientDto) {
     const newPatient = new this.patientModel(createPatientDto);
@@ -35,7 +35,7 @@ export class PatientsService {
   }
 
   getPatients() {
-    return this.patientModel.find();
+    return this.patientModel.find({}, 'name contactNumber profilePic');
   }
 
   async getPatientById(id: string) {
