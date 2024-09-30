@@ -68,4 +68,9 @@ export class CreateDoctorDto {
   document: String;
 
   profilePic: String;
+
+  @IsOptional()
+  @IsBoolean()
+  isVerifiedUpdatedQulaification: boolean;
+
 }
