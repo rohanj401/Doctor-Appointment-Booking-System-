@@ -67,8 +67,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AppointmentsModule } from './appointments/appointments.module';
 import { Appointment, AppointmentSchema } from './schemas/Appointment.schema';
-import { CloudinaryModule } from './cloudinary/cloudinary.module';
-import { CloudinaryService } from './cloudinary/cloudinary.service';
+
 import { Patient, PatientSchema } from './schemas/Patient.schema';
 import { HttpModule } from '@nestjs/axios';
 import * as bodyParser from 'body-parser';
@@ -106,7 +105,7 @@ import { AuthGuard } from './auth/auth.gaurd';
     DoctorsModule,
     UsersModule,
     AppointmentsModule,
-    CloudinaryModule,
+
     AuthModule,
     HttpModule,
     PrescriptionModule,
@@ -118,7 +117,6 @@ import { AuthGuard } from './auth/auth.gaurd';
   controllers: [AppController, ContactController],
   providers: [
     AppService,
-    CloudinaryService,
     MailService,
     NotificationService,
     { provide: APP_GUARD, useClass: AuthGuard },

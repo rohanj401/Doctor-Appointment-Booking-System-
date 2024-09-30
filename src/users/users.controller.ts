@@ -25,14 +25,13 @@ export class UsersController {
   @Public()
   @Post('/doctor')
   createUserDoctor(@Body() createUserDoctorDto: CreateUserDoctorDto) {
-    console.log(` document  is ${JSON.stringify(createUserDoctorDto)}`);
+    console.log(` document   ${JSON.stringify(createUserDoctorDto)}`);
     return this.usersService.createUserDoctor(createUserDoctorDto);
   }
 
   @Public()
   @Post('/patient')
   createUserPatient(@Body() createUserPatientDto: CreateUserPatientDto) {
-    console.log(` document  is ${JSON.stringify(createUserPatientDto)}`);
     return this.usersService.createUserPatient(createUserPatientDto);
   }
 
@@ -45,7 +44,6 @@ export class UsersController {
   @Public()
   @Get('/getUserByEmail')
   async getUserByEmail(@Query('email') email: string) {
-    console.log('email is ' + email);
     return this.usersService.getUserByEmail(email);
   }
 
@@ -71,11 +69,11 @@ export class UsersController {
   }
 
   // Endpoint to delete a user by ID
-  @Delete(':id')
-  // @UseGuards(AuthGuard)
-  async deleteUser(@Param('id') id: string): Promise<void> {
-    return this.usersService.deleteUserById(id);
-  }
+  // @Delete(':id')
+  // // @UseGuards(AuthGuard)
+  // async deleteUser(@Param('id') id: string): Promise<void> {
+  //   return this.usersService.deleteUserById(id);
+  // }
 
   //admin creation----------
 

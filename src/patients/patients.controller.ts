@@ -13,8 +13,7 @@ import { PatientsService } from './patients.service';
 import { CreatePatientDto } from './dtos/create-patient.dto';
 import mongoose from 'mongoose';
 import { UpdatePatientDto } from './dtos/update-patient.dto';
-import { AuthGuard } from 'src/auth/auth.gaurd';
-import { Public } from 'src/auth/decorators/public.decorator';
+
 import { Roles } from 'src/auth/decorators/roles.decorator';
 import { Role } from 'src/auth/guards/role.enum';
 
@@ -23,7 +22,6 @@ export class PatientsController {
   constructor(private patientsService: PatientsService) {}
   @Post()
   createUser(@Body() createpatientDto: CreatePatientDto) {
-    console.log(createpatientDto);
     return this.patientsService.createPatient(createpatientDto);
   }
 
@@ -42,7 +40,6 @@ export class PatientsController {
     if (!isValid) throw new HttpException('User Not Found', 404);
     const patient = await this.patientsService.getPatientById(id);
     if (!patient) throw new HttpException('Patient Not Found ', 404);
-    console.log('Patient is :', patient);
     return patient;
   }
 
@@ -57,7 +54,6 @@ export class PatientsController {
     return this.patientsService.updateUser(id, updatePatientDto);
   }
 
-  @Public()
   @Roles(Role.Admin, Role.Patient)
   @Delete(':id')
   async deletePatient(@Param('id') id: string): Promise<void> {

@@ -8,23 +8,22 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { CreateArticleDto } from './dto/create-article.dto';
 import { Article, ArticleDocument } from '../schemas/Articles.schema';
-import { Doctor } from '../schemas/doctor.schema';
+import { DoctorsService } from 'src/doctors/doctors.service';
 
 @Injectable()
 export class ArticlesService {
   constructor(
     @InjectModel(Article.name) private articleModel: Model<ArticleDocument>,
-    @InjectModel(Doctor.name) private doctorModel: Model<Doctor>,
+    private readonly doctorsService: DoctorsService,
   ) {}
 
   async create(createArticleDto: CreateArticleDto): Promise<Article> {
     console.log('doctorId is ', createArticleDto.doctorId);
     const doctorId = new Types.ObjectId(createArticleDto.doctorId);
     console.log('creating article for doctor Id ', doctorId);
-    const doctor = await this.doctorModel
-      .findById(createArticleDto.doctorId)
-      .exec();
-    console.log('doctor is ', doctor);
+    const doctor = await this.doctorsService.getDoctorById(
+      createArticleDto.doctorId,
+    );
 
     if (!doctor) {
       throw new ForbiddenException('Only existing doctors can write articles');
@@ -41,7 +40,6 @@ export class ArticlesService {
     if (query.doctor) {
       query.doctor = new Types.ObjectId(query.doctor);
     }
-    console.log(query);
     return this.articleModel
       .find(query)
       .populate('doctor')

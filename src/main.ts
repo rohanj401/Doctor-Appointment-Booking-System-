@@ -69,7 +69,6 @@ async function bootstrap() {
     },
   });
 
-  console.log(process.env.NEST_PORT);
   await app.listen(process.env.NEST_PORT || 5000);
 }
 bootstrap();

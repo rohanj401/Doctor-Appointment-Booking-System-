@@ -18,12 +18,14 @@ import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 import { AuthGuard } from 'src/auth/auth.gaurd';
 import { Public } from 'src/auth/decorators/public.decorator';
+import { Role } from 'src/auth/guards/role.enum';
+import { Roles } from 'src/auth/decorators/roles.decorator';
 
 @Controller('appointments')
 export class AppointmentsController {
   constructor(private appointmentsService: AppointmentsService) {}
   @Post('/bookSlot')
-  @UseGuards(AuthGuard)
+  @Roles(Role.Patient)
   @HttpCode(HttpStatus.OK)
   async bookSlot(@Body() createAppointmentDto: CreateAppointmentDto) {
     const { doctorId, patientId, slotId, appointmentDate } =
@@ -53,6 +55,15 @@ export class AppointmentsController {
     return this.appointmentsService.getAppointments(query);
   }
 
+  @Public()
+  @Get('/findAppointmentsByPatientId/:id')
+  async findAppointmentsByPatientId(@Param('id') id: string) {
+    console.log('Received patient ID:', id);
+    return this.appointmentsService.findAppointmentsByPatientIdAndStatus(
+      id,
+      'accepted',
+    );
+  }
   @Get('/getAppointmentsByDoctorId')
   async getAppointments(@Query('doctorId') doctorId: string): Promise<any[]> {
     console.log(`Fetching appointments by doctorId : ${doctorId}`);

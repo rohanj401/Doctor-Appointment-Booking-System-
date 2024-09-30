@@ -1,43 +1,49 @@
 import {
   BadRequestException,
+  forwardRef,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { Appointment } from 'src/schemas/Appointment.schema';
 import { Rating } from 'src/schemas/Ratings.schema';
 import { CreateRatingDto } from './dto/create-rating.dto';
 import { UpdateRatingDto } from './dto/update-rating.dto';
-import { Doctor } from 'src/schemas/doctor.schema';
-import { Patient } from 'src/schemas/Patient.schema';
+import { DoctorsService } from 'src/doctors/doctors.service';
+import { PatientsService } from 'src/patients/patients.service';
+import { AppointmentsService } from 'src/appointments/appointments.service';
 
 @Injectable()
 export class RatingsService {
   constructor(
     @InjectModel(Rating.name) private ratingModel: Model<Rating>,
-    @InjectModel(Appointment.name) private appointmentModel: Model<Appointment>,
-    @InjectModel(Doctor.name) private doctorModel: Model<Appointment>,
-    @InjectModel(Patient.name) private patientModel: Model<Appointment>,
-  ) { }
+    @Inject(forwardRef(() => DoctorsService))
+    private readonly doctorsService: DoctorsService,
+    @Inject(forwardRef(() => PatientsService))
+    private readonly patientsService: PatientsService,
+    private readonly appointmentsService: AppointmentsService,
+  ) {}
 
   async createRating(createRatingDto: CreateRatingDto): Promise<Rating> {
     const { doctor, patient, rating, comment, appointment } = createRatingDto;
-    const doctorData = await this.doctorModel.findById(doctor).exec();
-
+    const doctorData = await this.doctorsService.getDoctorById(
+      doctor.toString(),
+    );
     if (!doctorData) {
       throw new NotFoundException('Doctor not found.');
     }
-    const patientData = await this.patientModel.findById(patient).exec();
+    const patientData = await this.patientsService.getPatientById(
+      patient.toString(),
+    );
 
     if (!patientData) {
       throw new NotFoundException('Patient not found.');
     }
 
-    const appointmentData = await this.appointmentModel
-      .findById(appointment)
-      .exec();
-    console.log('appointmentData', appointmentData);
+    const appointmentData = await this.appointmentsService.getAppointmentById(
+      appointment.toString(),
+    );
     if (!appointmentData) {
       throw new BadRequestException(
         'No approved appointment found for this patient with the doctor.',
@@ -51,7 +57,6 @@ export class RatingsService {
       rating,
       comment,
     });
-    console.log('rating:', ratings);
     return ratings.save();
   }
   async getAllRatings(): Promise<Rating[]> {
@@ -70,7 +75,6 @@ export class RatingsService {
       .exec();
   }
   async getRatingsByAppointmentId(appointmentId: string): Promise<Rating[]> {
-    console.log(appointmentId);
     let appointment = new Types.ObjectId(appointmentId);
     return this.ratingModel
       .find({ appointment })
@@ -88,19 +92,36 @@ export class RatingsService {
     }
     return rating;
   }
+
+  async getAverageRating(doctorId: string | Types.ObjectId): Promise<number> {
+    // Ensure doctorId is in ObjectId format
+    const doctorObjectId =
+      typeof doctorId === 'string' ? new Types.ObjectId(doctorId) : doctorId;
+
+    const ratings = await this.ratingModel
+      .find({ doctor: doctorObjectId })
+      .exec();
+
+    if (ratings.length === 0) {
+      return 0;
+    }
+
+    const avgRating =
+      ratings.reduce((acc, rating) => acc + rating.rating, 0) / ratings.length;
+
+    return avgRating;
+  }
   async updateRating(
     id: string,
     updateRatingDto: UpdateRatingDto,
   ): Promise<Rating> {
     const { doctor, patient } = updateRatingDto;
-    const doctorObjectId = new Types.ObjectId(doctor);
-    const patientObjectId = new Types.ObjectId(patient);
 
-    const appointment = await this.appointmentModel.findOne({
-      doctor: doctor,
-      patient: patient,
-      status: 'completed',
-    });
+    const appointment = await this.appointmentsService.findCompletedAppointment(
+      doctor,
+      patient,
+    );
+
     if (!appointment) {
       throw new BadRequestException(
         'No approved appointment found for this patient with doctor.',

@@ -25,7 +25,6 @@ export class RatingController {
   async createRating(
     @Body() createRatingDto: CreateRatingDto,
   ): Promise<Rating> {
-    console.log(createRatingDto);
     return this.ratingService.createRating(createRatingDto);
   }
 

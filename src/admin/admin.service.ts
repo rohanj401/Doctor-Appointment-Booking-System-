@@ -5,15 +5,17 @@ import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
 import { Admin } from 'src/schemas/Admin.schema';
 import { MailerService } from '@nestjs-modules/mailer';
+import { DoctorsService } from 'src/doctors/doctors.service';
+import { UsersService } from 'src/users/users.service';
+import { generateDoctorVerifiedEmail } from '../EmailTemplates/verifiedEmailTemplate';
 
 @Injectable()
 export class AdminService {
   constructor(
-    @InjectModel(Doctor.name) private doctorModel: Model<Doctor>,
-    @InjectModel(User.name) private userModel: Model<User>,
     @InjectModel(Admin.name) private adminModel: Model<Admin>,
-    @InjectModel(User.name) private userName: Model<User>,
     private readonly mailerService: MailerService,
+    private readonly doctorsService: DoctorsService,
+    private readonly usersService: UsersService,
   ) {}
 
   async getAdmins(): Promise<Admin[]> {
@@ -21,7 +23,7 @@ export class AdminService {
   }
 
   async verifyDoctor(id: string): Promise<Doctor> {
-    const doctor = await this.doctorModel.findById(id);
+    const doctor = await this.doctorsService.getDoctorById(id);
     if (!doctor) {
       throw new NotFoundException(`Doctor with ID ${id} not found`);
     }
@@ -33,27 +35,12 @@ export class AdminService {
   }
 
   async sendVerifiedMail(doctor: Doctor) {
-    const user = await this.userModel.findById(doctor.user);
+    const user = await this.usersService.getUserById(doctor.user.toString());
+    const emailContent = generateDoctorVerifiedEmail(user.name);
     await this.mailerService.sendMail({
       to: user.email,
       subject: 'Profile Verification Complete',
-      html: `
-        <html>
-        <body>
-          <h1>Dear Dr. ${user.name},</h1>
-          <p>
-            We are pleased to inform you that your profile has been successfully verified. You can now fully access your account, manage your profile, and start scheduling appointments with patients. 
-          </p>
-          <p>
-            Thank you for your patience and for choosing our platform. If you have any questions or need further assistance, please do not hesitate to contact us.
-          </p>
-          <p>
-            Best regards,<br/>
-            The DABS Team
-          </p>
-        </body>
-        </html>
-      `,
+      html: emailContent,
     });
   }
 }

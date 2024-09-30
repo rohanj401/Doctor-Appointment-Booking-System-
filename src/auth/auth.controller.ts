@@ -17,7 +17,7 @@ import { ResetPasswordDto } from './dtos/reset-password.dto';
 import { Public } from './decorators/public.decorator';
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) { }
+  constructor(private authService: AuthService) {}
   @HttpCode(HttpStatus.OK)
   @Public()
   @Post('/login')
@@ -28,13 +28,11 @@ export class AuthController {
 
   @Get('/profile')
   getProfile(@Request() req) {
-    console.log(`req.user :${req.user}`);
     return req.user;
   }
 
   @Post('/forgot-password')
   async forgotPasssword(@Body() forgotPasswordDto: ForgotPasswordDto) {
-    console.log('Forgot Password');
     return this.authService.forgotPassword(forgotPasswordDto.email);
   }
 
