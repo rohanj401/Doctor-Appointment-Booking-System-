@@ -2,25 +2,31 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  forwardRef,
+  Inject,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { CreatePrescriptionDto } from './dtos/create-prescription.dto';
 import { UpdatePrescriptionDto } from './dtos/update-prescription.dto';
-import { Doctor } from 'src/schemas/doctor.schema';
-import { Patient } from 'src/schemas/Patient.schema';
+
 import { Prescription } from 'src/schemas/Prescription.schema'; // Import the model directly
-import { Appointment } from 'src/schemas/Appointment.schema';
+import { PatientsService } from 'src/patients/patients.service';
+import { DoctorsService } from 'src/doctors/doctors.service';
+import { AppointmentsService } from 'src/appointments/appointments.service';
 
 @Injectable()
 export class PrescriptionService {
   constructor(
     @InjectModel(Prescription.name)
     private readonly prescriptionModel: Model<Prescription>,
-    @InjectModel(Doctor.name) private readonly doctorModel: Model<Doctor>,
-    @InjectModel(Patient.name) private readonly patientModel: Model<Patient>,
-    @InjectModel(Appointment.name)
-    private readonly appointmentModel: Model<Appointment>,
+    // @InjectModel(Doctor.name) private readonly doctorModel: Model<Doctor>,
+    // @InjectModel(Patient.name) private readonly patientModel: Model<Patient>,
+    // @InjectModel(Appointment.name)
+    // private readonly appointmentModel: Model<Appointment>,
+    @Inject(forwardRef(() => PatientsService))
+    private readonly patientsService: PatientsService,
+    private readonly doctorService: DoctorsService,
+    private readonly appointmentsService: AppointmentsService,
   ) {}
 
   private async validateDoctorAndPatient(
@@ -34,12 +40,14 @@ export class PrescriptionService {
       throw new BadRequestException('Invalid doctor or patient ID format.');
     }
 
-    const doctorExists = await this.doctorModel.exists({ _id: doctorId });
+    const doctorExists = await this.doctorService.checkIfDoctorExists(doctorId);
     if (!doctorExists) {
       throw new NotFoundException(`Doctor with ID ${doctorId} not found.`);
     }
 
-    const patientExists = await this.patientModel.exists({ _id: patientId });
+    // const patientExists = await this.patientModel.exists({ _id: patientId });
+    const patientExists =
+      await this.patientsService.checkIfPatientExists(patientId);
     if (!patientExists) {
       throw new NotFoundException(`Patient with ID ${patientId} not found.`);
     }
@@ -50,7 +58,6 @@ export class PrescriptionService {
 
     const responce = this.prescriptionModel.find({ patientId }).exec();
 
-    console.log(JSON.stringify(responce));
     return responce;
   }
 
@@ -85,23 +92,17 @@ export class PrescriptionService {
 
     // Save and return the prescription
     const res = newPrescription.save();
-    await this.appointmentModel.updateOne(
-      { slot: transformedPrescriptionDto.slotId }, // Use slotId field to find the appointment
-      { $set: { status: 'completed' } },
+    // await this.appointmentModel.updateOne(
+    //   { slot: transformedPrescriptionDto.slotId }, // Use slotId field to find the appointment
+    //   { $set: { status: 'completed' } },
+    // );
+
+    await this.appointmentsService.updateAppointmentStatusToCompleted(
+      transformedPrescriptionDto.slotId,
+      'completed',
     );
 
     return res;
-  }
-
-  async create(
-    createPrescriptionDto: CreatePrescriptionDto,
-  ): Promise<Prescription> {
-    const { doctor, patient } = createPrescriptionDto;
-
-    await this.validateDoctorAndPatient(doctor, patient);
-
-    const newPrescription = new this.prescriptionModel(createPrescriptionDto);
-    return newPrescription.save();
   }
 
   async findAll(query: any): Promise<Prescription[]> {
@@ -188,7 +189,6 @@ export class PrescriptionService {
         },
       ]);
 
-      console.log(JSON.stringify(response));
       return response;
     } catch (error) {
       throw new Error(
@@ -216,6 +216,17 @@ export class PrescriptionService {
       throw new Error(
         `Error finding prescription for Patient: ${error.message}`,
       );
+    }
+  }
+
+  async deletePrescriptionsByPatientId(patientId: Types.ObjectId) {
+    const patient = await this.patientsService.getPatientById(
+      patientId.toString(),
+    );
+    if (!patient) {
+      throw new NotFoundException('Patient not found');
+    } else {
+      await this.prescriptionModel.deleteMany({ patientId: patientId });
     }
   }
 }

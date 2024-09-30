@@ -16,7 +16,6 @@ export class ContactController {
     },
   ) {
     console.log(' ******************** Inside contorller ************');
-    console.log('body', body);
     const { name, email, subject, message } = body;
     // const fullMessage = `${message}`;
     // console.log('FULL Message is ', fullMessage);

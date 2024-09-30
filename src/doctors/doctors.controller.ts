@@ -18,6 +18,8 @@ import { UpdateDoctorDto } from './dtos/update-doctor.dto';
 import { DoctorsService } from './doctors.service';
 import { CancelSlotDto } from './dtos/cancel-slot.dto';
 import { Public } from 'src/auth/decorators/public.decorator';
+import { Roles } from 'src/auth/decorators/roles.decorator';
+import { Role } from 'src/auth/guards/role.enum';
 
 @Controller('doctors')
 export class DoctorsController {
@@ -25,27 +27,30 @@ export class DoctorsController {
 
   @Post('/addAvailability')
   async addDoctorAvailability(@Body() data: any) {
-    console.log(data);
     return this.doctorsService.addAvailability(data);
   }
 
   @Post(':id/verify')
+  @Roles(Role.Admin)
   async verifyDoctor(@Param('id') id: string) {
     return this.doctorsService.verifyDoctor(id);
   }
 
-  @Post(':id')
+  @Patch('/disable/:id')
+  @Roles(Role.Admin)
   async disableDoctor(@Param('id') id: string) {
     return this.doctorsService.disableDoctor(id);
   }
 
   @Patch('/cancelSlot')
+  @Roles(Role.Doctor)
   async cancelSlot(@Body() cancelSlotDto: CancelSlotDto): Promise<void> {
     console.log('Cancelling slot ');
     return await this.doctorsService.cancelSlot(cancelSlotDto);
   }
 
   @Patch('/cancelAllSlots')
+  @Roles(Role.Doctor)
   async cancelAllSlots(@Body() body: { doctorId: string; date: string }) {
     const { doctorId, date } = body;
     console.log('Cancelling all slots');
@@ -76,6 +81,7 @@ export class DoctorsController {
     }
   }
   @Get('/fetchDoctorByUserId/:id')
+  @Roles(Role.Doctor)
   async fetchDoctorByUserId(@Param('id') id: string) {
     try {
       return this.doctorsService.fetchDoctorByUserId(id);
@@ -85,6 +91,7 @@ export class DoctorsController {
   }
 
   @Get('/getAvailableDates/:id')
+  @Roles(Role.Doctor, Role.Patient)
   async getAvailableDates(@Param('id') id: string) {
     try {
       return await this.doctorsService.fetchAvailableDates(id);
@@ -93,6 +100,7 @@ export class DoctorsController {
     }
   }
   @Get('/getAllDoctors-Admin')
+  @Roles(Role.Admin)
   async getDoctorss(
     @Query('status') status: 'all' | 'verified' | 'unverified' = 'all',
     @Query('page') page: number = 1,
@@ -107,13 +115,8 @@ export class DoctorsController {
     return result;
   }
 
-  @Get('getNearByDoctors')
-  findNearbyDoctors(@Body() data: any) {
-    console.log('Finding nearBy Doctors');
-    return this.doctorsService.findNearbyDoctors(data);
-  }
-
   @Get('/getDoctorById/:id')
+  @Roles(Role.Patient, Role.Doctor, Role.Admin)
   async getDoctorById(@Param('id') id: string) {
     const isValid = mongoose.Types.ObjectId.isValid(id);
     if (!isValid) throw new HttpException('Doctor Not Found', 404);
@@ -125,11 +128,11 @@ export class DoctorsController {
   @Public()
   @Get()
   getDoctors() {
-    console.log('Fetching All Doctors from the controller');
     return this.doctorsService.getDoctors();
   }
 
   @Patch(':id')
+  @Roles(Role.Admin, Role.Doctor)
   updateDoctor(
     @Param('id') id: string,
     @Body() updateDoctorDto: UpdateDoctorDto,
@@ -139,12 +142,8 @@ export class DoctorsController {
     return this.doctorsService.patchDoctor(id, updateDoctorDto);
   }
 
-  @Delete(':id')
-  async deleteDoctor(@Param('id') id: string): Promise<void> {
-    return this.doctorsService.deleteDoctor(id);
-  }
-
   @Get('search')
+  @Roles(Role.Patient)
   async searchDoctors(
     @Query('state') state: string,
     @Query('city') city: string,

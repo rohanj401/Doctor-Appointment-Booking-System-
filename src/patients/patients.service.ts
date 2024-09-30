@@ -1,20 +1,32 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  forwardRef,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import mongoose, { Model } from 'mongoose';
+import mongoose, { Model, Types } from 'mongoose';
 import { Patient } from '../schemas/Patient.schema';
 import { CreatePatientDto } from './dtos/create-patient.dto';
 import { UpdatePatientDto } from './dtos/update-patient.dto';
-import { User } from '../schemas/User.schema';
-import { Prescription } from 'src/schemas/Prescription.schema';
-import { Appointment } from 'src/schemas/Appointment.schema';
+
+import { UsersService } from 'src/users/users.service';
+import { AppointmentsService } from 'src/appointments/appointments.service';
+import { PrescriptionService } from 'src/prescription/prescription.service';
+import { DoctorsService } from 'src/doctors/doctors.service';
 
 @Injectable()
 export class PatientsService {
   constructor(
     @InjectModel(Patient.name) private patientModel: Model<Patient>,
-    @InjectModel(User.name) private userModel: Model<User>,
-    @InjectModel(Prescription.name) private prescriptionModel: Model<Prescription>,
-    @InjectModel(Appointment.name) private appointmentModel: Model<Appointment>,
+    @Inject(forwardRef(() => UsersService))
+    private readonly userService: UsersService,
+    @Inject(forwardRef(() => PrescriptionService))
+    private readonly prescriptionService: PrescriptionService,
+    @Inject(forwardRef(() => AppointmentsService))
+    private readonly apppointmentsService: AppointmentsService,
+    @Inject(forwardRef(() => DoctorsService))
+    private readonly doctorsService: DoctorsService,
   ) { }
 
   createPatient(createPatientDto: CreatePatientDto) {
@@ -23,7 +35,7 @@ export class PatientsService {
   }
 
   getPatients() {
-    return this.patientModel.find();
+    return this.patientModel.find({}, 'name contactNumber profilePic');
   }
 
   async getPatientById(id: string) {
@@ -48,27 +60,11 @@ export class PatientsService {
 
     return patient;
   }
-
-  // async deletePatient(patientId: string): Promise<void> {
-  //   const patient = await this.patientModel.findById(patientId);
-
-  //   if (!patient) {
-  //     throw new NotFoundException('Patient not found');
-  //   }
-
-  //   console.log('Deleting patient with ID:', patientId);
-  //   await this.appointmentModel.deleteMany({ patient: patientId });
-
-  //   await this.prescriptionModel.deleteMany({ patientId: patientId });
-  //   await this.patientModel.findByIdAndDelete(patientId);
-
-  //   // Delete the corresponding user
-  //   await this.userModel.findByIdAndDelete(patient.user);
-
-  //   // Delete the patient
-
-  // }
-
+  async deletePatientByUserId(userId) {
+    await this.patientModel.findOneAndDelete({
+      user: new Types.ObjectId(userId),
+    });
+  }
   async deletePatient(patientId: string): Promise<void> {
     const patient = await this.patientModel.findById(patientId);
 
@@ -78,16 +74,45 @@ export class PatientsService {
 
     const patientIdObject = new mongoose.Types.ObjectId(patientId);
 
+    const appointments =
+      await this.apppointmentsService.findAppointmentsByPatientIdAndStatus(
+        patientId,
+        'accepted',
+      );
+    if (appointments.length > 0) {
+      for (const appointment of appointments) {
+        const { doctor, slot } = appointment; // Assuming `doctor` and `slot` are stored in the appointment model
+
+        const doctorObjectId = new mongoose.Types.ObjectId(doctor);
+        const slotObjectId = new mongoose.Types.ObjectId(slot);
+
+        // Update the slot status to 'available' in the doctor's availability
+        const isoDate = appointment.appointmentDate.toISOString().split('T')[0]; // Extract ISO date from appointmentDate
+        console.log('Date is ', isoDate);
+
+        await this.doctorsService.updateSlotStatusWhileDeletePatient(
+          doctorObjectId,
+          isoDate,
+          slotObjectId,
+        );
+      }
+    }
+
     // Delete appointments associated with the patient
-    await this.appointmentModel.deleteMany({ patient: patientIdObject });
-
+    await this.apppointmentsService.deleteAppointmentsByPatientId(patientId);
     // Delete prescriptions associated with the patient
-    await this.prescriptionModel.deleteMany({ patientId: patientIdObject });
-
+    await this.prescriptionService.deletePrescriptionsByPatientId(
+      patientIdObject,
+    );
     // Delete the patient
     await this.patientModel.findByIdAndDelete(patientId);
 
     // Delete the corresponding user
-    await this.userModel.findByIdAndDelete(patient.user);
+    await this.userService.deleteUserById(patient.user.toString());
+  }
+
+  async checkIfPatientExists(patientId: string) {
+    const res = await this.patientModel.exists({ _id: patientId });
+    return res;
   }
 }
