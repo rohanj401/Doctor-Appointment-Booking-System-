@@ -1,21 +1,27 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  forwardRef,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import mongoose, { Model, Types } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { UpdateDoctorDto } from './dtos/update-doctor.dto';
 import { Doctor } from '../schemas/doctor.schema';
-import { CloudinaryService } from '../cloudinary/cloudinary.service';
-import { User } from '../schemas/User.schema';
 import { Availability } from '../schemas/Availability.schema';
 import { Slot } from '../schemas/Slot.schema';
 import { CancelSlotDto } from './dtos/cancel-slot.dto';
-import { Appointment } from '../schemas/Appointment.schema';
-import { Patient } from '../schemas/Patient.schema';
+
 import { MailerService } from '@nestjs-modules/mailer';
-import { Rating } from '../schemas/Ratings.schema';
-import { Prescription } from '../schemas/Prescription.schema';
+
 import * as Twilio from 'twilio';
 import { generateAppointmentCancellationEmail } from '../EmailTemplates/appointmnetCamcellationEmailTemplate';
 import { generateAppointmentCancellationSMS } from '../SMS_Templates/appointementCancellationSMS';
+import { CreateDoctorDto } from './dtos/create-doctor.dto';
+import { AppointmentsService } from 'src/appointments/appointments.service';
+import { PatientsService } from 'src/patients/patients.service';
+import { UsersService } from 'src/users/users.service';
+import { RatingsService } from 'src/ratings/ratings.service';
 // import { zonedTimeToUtc } from 'date-fns-tz';
 
 @Injectable()
@@ -23,18 +29,17 @@ export class DoctorsService {
   private twilioClient: Twilio.Twilio;
 
   constructor(
-    private readonly cloudinaryService: CloudinaryService,
     @InjectModel(Doctor.name) private doctorModel: Model<Doctor>,
-    @InjectModel(Rating.name) private ratingModel: Model<Rating>,
-    @InjectModel(User.name) private userModel: Model<User>,
     @InjectModel(Slot.name) private slotModel: Model<Slot>,
-    @InjectModel(Prescription.name)
-    private prescriptionModel: Model<Prescription>,
     @InjectModel(Availability.name)
     private availabilityModel: Model<Availability>,
-    @InjectModel(Appointment.name) private appointmentModel: Model<Appointment>,
-    @InjectModel(Patient.name) private patientModel: Model<Patient>,
     private readonly mailerService: MailerService,
+    private readonly appointmentsService: AppointmentsService,
+    @Inject(forwardRef(() => PatientsService))
+    private readonly patientsService: PatientsService,
+    @Inject(forwardRef(() => UsersService))
+    private readonly usersService: UsersService,
+    private readonly ratingsService: RatingsService,
   ) {
     this.twilioClient = Twilio(
       process.env.TWILIO_ACCOUNT_SID,
@@ -42,6 +47,9 @@ export class DoctorsService {
     );
   }
 
+  async createDcotor(createDoctorDto: CreateDoctorDto) {
+    return await new this.doctorModel(createDoctorDto);
+  }
   async findDoctors(
     status: 'all' | 'verified' | 'unverified',
     page: number,
@@ -76,17 +84,11 @@ export class DoctorsService {
     for (const doctor of doctors) {
       const doctorObjectId =
         typeof doctor._id === 'string' && new Types.ObjectId(doctor._id);
-      const ratings = await this.ratingModel
-        .find({ doctor: doctor._id })
-        .exec();
-      const avgRating =
-        ratings.length > 0
-          ? ratings.reduce((acc, rating) => acc + rating.rating, 0) /
-          ratings.length
-          : 0;
+      const averageRating = await this.ratingsService.getAverageRating(
+        doctor._id.toString(),
+      );
       const doctorObject = doctor.toObject() as Doctor & { avgRating: number };
-      doctorObject.avgRating = avgRating;
-
+      doctorObject.avgRating = averageRating;
       doctorsWithRatings.push(doctorObject);
     }
 
@@ -94,7 +96,8 @@ export class DoctorsService {
   }
 
   async getDoctorById(id: string): Promise<Doctor> {
-    const doctor = await this.doctorModel.findById(id).exec();
+    console.log('doctorId', id);
+    const doctor = await this.doctorModel.findById(id);
     if (!doctor) {
       throw new NotFoundException(`Doctor with ID "${id}" not found`);
     }
@@ -121,25 +124,6 @@ export class DoctorsService {
     }
 
     return this.doctorModel.findByIdAndUpdate(id, updateDoctorDto);
-  }
-
-  async findNearbyDoctors(data: any) {
-    console.log(data.userLatitude);
-    console.log(data.userLongitude);
-    const radiusInMeters = data.radiusInKm * 1000;
-    console.log(radiusInMeters);
-    return await this.doctorModel.find({
-      location: {
-        $nearSphere: {
-          $geometry: {
-            type: 'Point',
-            coordinates: [data.userLatitude, data.userLongitude],
-          },
-          $minDistance: 0,
-          $maxDistance: radiusInMeters,
-        },
-      },
-    });
   }
 
   async searchDoctors(
@@ -186,18 +170,13 @@ export class DoctorsService {
       const doctorsWithRatings: (Doctor & { avgRating: number })[] = [];
 
       for (const doctor of response) {
-        const ratings = await this.ratingModel
-          .find({ doctor: doctor._id })
-          .exec();
-        const avgRating =
-          ratings.length > 0
-            ? ratings.reduce((acc, rating) => acc + rating.rating, 0) /
-            ratings.length
-            : 0;
+        const averageRating = await this.ratingsService.getAverageRating(
+          doctor._id.toString(),
+        );
         const doctorObject = doctor.toObject() as Doctor & {
           avgRating: number;
         };
-        doctorObject.avgRating = avgRating;
+        doctorObject.avgRating = averageRating;
 
         doctorsWithRatings.push(doctorObject);
       }
@@ -208,24 +187,7 @@ export class DoctorsService {
     }
   }
 
-  async deleteDoctor(doctorId: string): Promise<void> {
-    const doctor = await this.doctorModel.findById(doctorId);
-
-    if (!doctor) {
-      throw new NotFoundException('Doctor not found');
-    }
-
-    // Delete the corresponding user
-    await this.userModel.findByIdAndDelete(doctor.user);
-
-    await this.appointmentModel.findByIdAndDelete();
-
-    // Delete the doctor
-    await this.doctorModel.findByIdAndDelete(doctorId);
-  }
-
   async disableDoctor(doctorId: string): Promise<Doctor> {
-
     const doctor = await this.doctorModel.findById(doctorId);
     if (!doctor) {
       throw new NotFoundException(`Doctor with ID ${doctorId} not found`);
@@ -235,8 +197,6 @@ export class DoctorsService {
     await doctor.save();
 
     return doctor;
-
-
   }
 
   async verifyDoctor(id: string): Promise<Doctor> {
@@ -392,21 +352,12 @@ export class DoctorsService {
     if (result.modifiedCount === 0) {
       throw new NotFoundException('Slot status was not updated');
     } else if (result.modifiedCount > 0) {
-      // Fetch appointment details with populated patient and user
-      const appointment = await this.appointmentModel
-        .findOne({
-          doctor: doctorObjectId,
-          appointmentDate: isoDate,
-          slot: slotObjectId,
-        })
-        .populate({
-          path: 'patient',
-          populate: {
-            path: 'user',
-            select: 'email',
-          },
-        })
-        .exec();
+      const appointment =
+        await this.appointmentsService.findAppointmentByDoctorDateAndSlot(
+          doctorObjectId,
+          isoDate,
+          slotObjectId,
+        );
 
       if (!appointment) {
         console.log('No appointment found for the slot');
@@ -420,7 +371,10 @@ export class DoctorsService {
         throw new NotFoundException('Doctor not found');
       }
 
-      const patient = await this.patientModel.findById(appointment.patient._id);
+      // const patient = await this.patientModel.findById(appointment.patient._id);
+      const patient = await this.patientsService.getPatientById(
+        appointment.patient._id.toString(),
+      );
       if (!patient) {
         throw new NotFoundException('Patient not found');
       }
@@ -446,12 +400,17 @@ export class DoctorsService {
     }
   }
 
+  async checkIfDoctorExists(doctorId: string) {
+    const res = await this.doctorModel.exists({ _id: doctorId });
+    return res;
+  }
+
   private async sendCancellationEmail(
     doctor: any,
     patient: any,
     formattedDate: string,
   ): Promise<void> {
-    const user = await this.userModel.findById(patient.user);
+    const user = await this.usersService.getUserById(patient.user);
     if (user) {
       const emailContent = generateAppointmentCancellationEmail(
         patient.name,
@@ -492,21 +451,11 @@ export class DoctorsService {
         `Availability removed for date: ${date.toISOString().split('T')[0]}`,
       );
 
-      const appointments = await this.appointmentModel
-        .find({
-          doctor: new Types.ObjectId(doctorId),
-          appointmentDate: isoDate,
-        })
-        .populate({
-          path: 'patient',
-          populate: {
-            path: 'user',
-          },
-        })
-        .exec();
-
-      console.log(`Total Appointments Found: ${appointments.length}`);
-      console.log('Appointments:', appointments);
+      const appointments =
+        await this.appointmentsService.findAppointmentsByDoctorAndDate(
+          doctorId,
+          isoDate,
+        );
 
       if (appointments.length === 0) {
         console.log('No appointments found for the slot');
@@ -525,6 +474,12 @@ export class DoctorsService {
     } catch (error) {
       throw new Error(`Error canceling all slots: ${error.message}`);
     }
+  }
+
+  async deleteDoctorByUserId(userId) {
+    await this.doctorModel.findOneAndDelete({
+      user: new Types.ObjectId(userId),
+    });
   }
 
   // Method to send cancellation emails in the background
@@ -576,6 +531,37 @@ export class DoctorsService {
       }
     } catch (error) {
       console.error(`Error sending cancellation emails: ${error.message}`);
+    }
+  }
+
+  async updateSlotStatusWhileDeletePatient(
+    doctorId: Types.ObjectId,
+    date: string,
+    slotId: Types.ObjectId,
+  ) {
+    try {
+      const result = await this.doctorModel.updateOne(
+        {
+          _id: doctorId,
+          'availability.date': date,
+          'availability.slots._id': slotId,
+        },
+        {
+          $set: {
+            'availability.$.slots.$[slot].status': 'available',
+          },
+        },
+        {
+          arrayFilters: [{ 'slot._id': slotId }],
+        },
+      );
+      if (result.modifiedCount === 0) {
+        console.error(
+          'No slots updated. Check if the slot exists and is correct.',
+        );
+      }
+    } catch (error) {
+      console.error('Error updating slot status:', error);
     }
   }
 }

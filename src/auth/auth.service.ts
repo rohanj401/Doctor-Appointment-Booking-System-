@@ -7,7 +7,6 @@ import { UsersService } from 'src/users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { InjectModel } from '@nestjs/mongoose';
-import { User } from 'src/schemas/User.schema';
 import { Model } from 'mongoose';
 import { nanoid } from 'nanoid';
 import { ResetToken } from 'src/schemas/reset-tokens.schema';
@@ -16,15 +15,14 @@ import { MailerService } from '@nestjs-modules/mailer';
 @Injectable()
 export class AuthService {
   constructor(
-    private userService: UsersService,
+    private usersService: UsersService,
     private jwtService: JwtService,
-    @InjectModel(User.name) private userModel: Model<User>,
     @InjectModel(ResetToken.name) private ResetTokenModel: Model<ResetToken>,
     private readonly mailerService: MailerService,
   ) {}
 
   async signIn(email: string, pass: string) {
-    const user = await this.userService.getUserByEmail(email);
+    const user = await this.usersService.getUserByEmail(email);
 
     if (user) {
       const isMatch = await bcrypt.compare(pass, user.password);
@@ -44,7 +42,7 @@ export class AuthService {
 
   async forgotPassword(email: any) {
     //TODO : Check that user exists
-    const user = await this.userModel.findOne({ email });
+    const user = await this.usersService.getUserByEmail(email);
 
     if (user) {
       //TODO: If user exists,generate password reset link
@@ -86,7 +84,8 @@ export class AuthService {
     }
 
     //Change user password (MAKE SURE TO HASH!!)
-    const user = await this.userModel.findById(token.userId);
+
+    const user = await this.usersService.getUserById(token.userId.toString());
     if (!user) {
       throw new InternalServerErrorException();
     }

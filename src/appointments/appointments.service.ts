@@ -1,24 +1,26 @@
 import {
   Injectable,
   NotFoundException,
-  ConflictException,
   InternalServerErrorException,
+  forwardRef,
+  Inject,
 } from '@nestjs/common';
-import { Model, ObjectId, Types } from 'mongoose';
+import mongoose, { Model, ObjectId, Types } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { Appointment } from 'src/schemas/Appointment.schema';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
-import { Doctor } from 'src/schemas/doctor.schema';
-import { Patient } from 'src/schemas/Patient.schema';
-import { Slot } from 'src/schemas/Slot.schema';
+
+import { PatientsService } from 'src/patients/patients.service';
+import { DoctorsService } from 'src/doctors/doctors.service';
 
 @Injectable()
 export class AppointmentsService {
   constructor(
     @InjectModel(Appointment.name) private appointmentModel: Model<Appointment>,
-    @InjectModel(Doctor.name) private readonly doctorModel: Model<Doctor>,
-    @InjectModel(Patient.name) private readonly patientModel: Model<Patient>,
-    @InjectModel(Slot.name) private readonly slotModel: Model<Slot>,
+    @Inject(forwardRef(() => PatientsService))
+    private readonly patientsService: PatientsService,
+    @Inject(forwardRef(() => DoctorsService))
+    private readonly doctorsService: DoctorsService,
   ) {}
   async bookSlot(
     doctorId: Types.ObjectId,
@@ -28,8 +30,9 @@ export class AppointmentsService {
   ): Promise<void> {
     try {
       // Find the doctor by ID
-      const doctor = await this.doctorModel.findById(doctorId).exec();
-
+      const doctor = await this.doctorsService.getDoctorById(
+        doctorId.toString(),
+      );
       if (!doctor) {
         throw new NotFoundException('Doctor not found.');
       }
@@ -110,10 +113,9 @@ export class AppointmentsService {
     const appointmentsWithDetails = await Promise.all(
       appointments.map(async (appointment) => {
         const patient = appointment.patient as any; // Use populated patient
-        const slot = appointment.slot as any; // Use populated slot (if available)
-        const doctor = await this.doctorModel
-          .findById(appointment.doctor)
-          .exec();
+        const doctor = await this.doctorsService.getDoctorById(
+          appointment.doctor.toString(),
+        );
 
         // Find the slot details from the doctor's availability
         const availability = doctor?.availability.find(
@@ -167,7 +169,6 @@ export class AppointmentsService {
       });
     }
 
-    console.log(JSON.stringify(groupedAppointments[0]));
     return groupedAppointments;
   }
 
@@ -178,7 +179,6 @@ export class AppointmentsService {
     if (query.patient) {
       query.patient = new Types.ObjectId(query.patient);
     }
-    console.log(query);
     return this.appointmentModel
       .find(query)
       .populate('doctor')
@@ -197,6 +197,43 @@ export class AppointmentsService {
     }
     return appointment;
   }
+  async findAppointmentsByPatientIdAndStatus(
+    patientId: string,
+    status: string,
+  ) {
+    try {
+      const patientIdObject = new mongoose.Types.ObjectId(patientId);
+
+      const appointments = await this.appointmentModel.find({
+        patient: patientIdObject,
+        status: status,
+      });
+      return appointments;
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  async findCompletedAppointment(
+    doctorId: string | Types.ObjectId,
+    patientId: string | Types.ObjectId,
+  ): Promise<Appointment | null> {
+    const doctorObjectId =
+      typeof doctorId === 'string' ? new Types.ObjectId(doctorId) : doctorId;
+    const patientObjectId =
+      typeof patientId === 'string' ? new Types.ObjectId(patientId) : patientId;
+
+    // Find one appointment that matches the doctor, patient, and completed status
+    const appointment = await this.appointmentModel
+      .findOne({
+        doctor: doctorObjectId,
+        patient: patientObjectId,
+        status: 'completed',
+      })
+      .exec();
+
+    return appointment;
+  }
 
   async updateAppointment(
     id: string,
@@ -213,11 +250,89 @@ export class AppointmentsService {
     return updatedAppointment;
   }
 
+  async findAppointmentByDoctorDateAndSlot(
+    doctorId: mongoose.Types.ObjectId,
+    appointmentDate: string,
+    slotId: mongoose.Types.ObjectId,
+  ) {
+    try {
+      const appointment = await this.appointmentModel
+        .findOne({
+          doctor: doctorId,
+          appointmentDate: appointmentDate, // Ensure this is the ISO date string
+          slot: slotId,
+        })
+        .populate({
+          path: 'patient',
+          populate: {
+            path: 'user',
+            select: 'email', // Only select the 'email' field from the user
+          },
+        })
+        .exec();
+
+      if (!appointment) {
+        throw new NotFoundException('Appointment not found');
+      }
+
+      return appointment;
+    } catch (error) {
+      console.error('Error fetching appointment:', error);
+      throw new InternalServerErrorException('Error fetching appointment');
+    }
+  }
+
+  async updateAppointmentStatusToCompleted(
+    slotId: Types.ObjectId,
+    status: string,
+  ): Promise<void> {
+    await this.appointmentModel.updateOne(
+      { slot: slotId }, // Use slotId to find the appointment
+      { $set: { status: status } }, // Update the status of the appointment
+    );
+  }
+  async findAppointmentsByDoctorAndDate(
+    doctorId: string,
+    appointmentDate: string,
+  ): Promise<Appointment[]> {
+    try {
+      const doctorObjectId = new Types.ObjectId(doctorId);
+      const appointments = await this.appointmentModel
+        .find({
+          doctor: doctorObjectId,
+          appointmentDate: appointmentDate,
+        })
+        .populate({
+          path: 'patient',
+          populate: {
+            path: 'user',
+          },
+        })
+        .exec();
+      return appointments;
+    } catch (error) {
+      // Handle error appropriately
+      throw new Error('Error finding appointments');
+    }
+  }
   async deleteAppointment(id: string): Promise<{ message: string }> {
     const result = await this.appointmentModel.deleteOne({ _id: id }).exec();
     if (result.deletedCount === 0) {
       throw new NotFoundException(`Appointment with ID "${id}" not found`);
     }
     return { message: `Appointment with ID "${id}" cancelled successfully` };
+  }
+
+  async deleteAppointmentsByPatientId(patientId: string) {
+    const patient = await this.patientsService.getPatientById(
+      patientId.toString(),
+    );
+    if (!patient) {
+      throw new NotFoundException('Patient not found');
+    } else {
+      await this.appointmentModel.deleteMany({
+        patient: new mongoose.Types.ObjectId(patientId),
+      });
+    }
   }
 }
