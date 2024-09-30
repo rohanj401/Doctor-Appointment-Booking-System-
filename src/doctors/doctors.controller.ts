@@ -23,7 +23,7 @@ import { Role } from 'src/auth/guards/role.enum';
 
 @Controller('doctors')
 export class DoctorsController {
-  constructor(private doctorsService: DoctorsService) {}
+  constructor(private doctorsService: DoctorsService) { }
 
   @Post('/addAvailability')
   async addDoctorAvailability(@Body() data: any) {
