@@ -23,7 +23,7 @@ export class ArticlesController {
   @Post()
   @Roles(Role.Doctor)
   async create(@Body() createArticleDto: CreateArticleDto) {
-    console.log('creatin article');
+    console.log('creating a article');
     return this.articlesService.create(createArticleDto);
   }
 

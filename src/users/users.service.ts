@@ -1,6 +1,8 @@
 import {
   BadRequestException,
   ConflictException,
+  forwardRef,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -18,17 +20,21 @@ import { CreateUserPatientDto } from './dtos/create-user-patient.dto';
 import { CreateUserAdminDto } from './dtos/create-user-admin.dto';
 import { generateDoctorWelcomeEmail } from '../EmailTemplates/welcomeDoctorEmailTemplate';
 import { generatePatientWelcomeEmail } from '../EmailTemplates/welcomePateintEmailTemplate';
+import { PatientsService } from 'src/patients/patients.service';
+import { DoctorsService } from 'src/doctors/doctors.service';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectModel(User.name) private userModel: Model<User>,
-    @InjectModel(Doctor.name) private doctorModel: Model<Doctor>,
-    @InjectModel(Patient.name) private patientModel: Model<Patient>,
+
     private readonly jwtService: JwtService,
     private readonly mailerService: MailerService,
+    @Inject(forwardRef(() => PatientsService))
+    private readonly patientService: PatientsService,
+    private readonly doctorService: DoctorsService,
   ) {}
-  async getUserByEmail(email) {
+  async getUserByEmail(email: string) {
     try {
       console.log(email);
       // Ensure the `email` field is correctly defined in your schema
@@ -117,12 +123,9 @@ export class UsersService {
         ],
       };
       // Create a new doctor object with separated clinicDetails
-      const newDoctor = await new this.doctorModel({
-        ...createDoctorDto,
-        clinicDetails, // Assign the extracted clinic details to the doctor object
-        location,
-      });
 
+      const doctor = { ...createDoctorDto, clinicDetails, location };
+      const newDoctor = await this.doctorService.createDcotor(doctor);
       console.log(newDoctor);
       await newDoctor.save();
 
@@ -163,15 +166,9 @@ export class UsersService {
         pinCode: createPatientDto.pinCode,
         state: createPatientDto.state,
       };
-      const newPatient = new this.patientModel({
-        ...createPatientDto,
-        address,
-      });
 
-      //saving patient
-      await newPatient.save();
-
-      //sending mail---------------------------
+      const createPatient = { ...createPatientDto, address };
+      const newPatient = this.patientService.createPatient(createPatient);
       const { email, name, contactNumber, profilePic } = createPatientDto;
 
       console.log(email, name, contactNumber, profilePic);
@@ -205,7 +202,6 @@ export class UsersService {
       payload = this.jwtService.verify(token, {
         secret: process.env.JwtSecret,
       });
-      console.log(payload);
     } catch (error) {
       throw new BadRequestException('Invalid or expired verification token');
     }
@@ -263,17 +259,13 @@ export class UsersService {
       throw new NotFoundException('User not found');
     }
 
-    // Check if the user is a doctor
+    // // Check if the user is a doctor
     if (user.role === 'doctor') {
-      await this.doctorModel.findOneAndDelete({
-        user: new Types.ObjectId(userId),
-      });
+      await this.doctorService.deleteDoctorByUserId(userId);
     }
 
     if (user.role === 'patient') {
-      await this.patientModel.findOneAndDelete({
-        user: new Types.ObjectId(userId),
-      });
+      await this.patientService.deletePatientByUserId(userId);
     }
     // Delete the user
     await this.userModel.findByIdAndDelete(userId);
@@ -285,9 +277,7 @@ export class UsersService {
     const userr = await this.getUserByEmail(user.email);
     const { email, name, password, role, ...otherData } = createUserDto;
     if (!userr) {
-      console.log(`Hashing Paswword `);
       const password = await bcrypt.hash(user.password, 10);
-      console.log('Paswword Hashed ');
 
       user.password = password;
       await user.save();

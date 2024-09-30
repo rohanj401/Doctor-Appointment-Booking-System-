@@ -77,7 +77,6 @@ export class PrescriptionController {
     },
   ): Promise<Prescription> {
     // Log the incoming request body for debugging
-    console.log('Saving prescription:', prescriptionDto);
     try {
       const transformedPrescriptionDto = {
         ...prescriptionDto,

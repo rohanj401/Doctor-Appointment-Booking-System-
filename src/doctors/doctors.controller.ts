@@ -27,7 +27,6 @@ export class DoctorsController {
 
   @Post('/addAvailability')
   async addDoctorAvailability(@Body() data: any) {
-    console.log(data);
     return this.doctorsService.addAvailability(data);
   }
 
@@ -37,7 +36,7 @@ export class DoctorsController {
     return this.doctorsService.verifyDoctor(id);
   }
 
-  @Post(':id')
+  @Patch('/disable/:id')
   @Roles(Role.Admin)
   async disableDoctor(@Param('id') id: string) {
     return this.doctorsService.disableDoctor(id);
@@ -129,7 +128,6 @@ export class DoctorsController {
   @Public()
   @Get()
   getDoctors() {
-    console.log('Fetching All Doctors from the controller');
     return this.doctorsService.getDoctors();
   }
 
