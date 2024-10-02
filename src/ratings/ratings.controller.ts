@@ -15,6 +15,7 @@ import { Rating } from 'src/schemas/Ratings.schema';
 import { AuthGuard } from 'src/auth/auth.gaurd';
 import { Roles } from 'src/auth/decorators/roles.decorator';
 import { Role } from 'src/auth/guards/role.enum';
+import { Public } from 'src/auth/decorators/public.decorator';
 
 @Controller('ratings')
 export class RatingController {
@@ -41,6 +42,7 @@ export class RatingController {
   }
 
   @Get('doctor/:doctor_id')
+  @Public()
   async getRatingsForDoctor(
     @Param('doctor_id') doctor_id: string,
   ): Promise<Rating[]> {

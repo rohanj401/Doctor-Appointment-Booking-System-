@@ -35,6 +35,7 @@ export class AdminService {
   }
 
   async sendVerifiedMail(doctor: Doctor) {
+    console.log('Doctor : ', doctor);
     const user = await this.usersService.getUserById(doctor.user.toString());
     const emailContent = generateDoctorVerifiedEmail(user.name);
     await this.mailerService.sendMail({
