@@ -31,6 +31,7 @@ export class AuthController {
     return req.user;
   }
 
+  @Public()
   @Post('/forgot-password')
   async forgotPasssword(@Body() forgotPasswordDto: ForgotPasswordDto) {
     return this.authService.forgotPassword(forgotPasswordDto.email);
